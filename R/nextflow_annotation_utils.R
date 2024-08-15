@@ -135,9 +135,10 @@ map_sample_output_rnaseq <- function(syn_out,
     result[, workflow := "STAR and Salmon"]
     results[[.output]] <- result
 
-    # annotation within an annotation workflow... enables reasoning in later steps
+    # annotation within an annotation workflow... enables automation in later steps
     setattr(results[[.output]], "outputFrom", .output)
     setattr(results[[.output]], "workflow", "nf-rnaseq")
+    setattr(results[[.output]], "outputDir", syn_out)
   }
 
   return(results)
@@ -216,6 +217,7 @@ map_sample_output_sarek <- function(syn_out,
       results[[.output]] <- result
       setattr(results[[.output]], "outputFrom", .output)
       setattr(results[[.output]], "workflow", "nf-sarek")
+      setattr(results[[.output]], "outputDir", syn_out)
     }
   }
 
@@ -341,6 +343,14 @@ annotate_aligned_reads <- function(metadata,
   metadata[, genomicReference := genomic_reference]
 
   if(verbose) message("  * ", genomic_reference, " used for genomicReference")
+
+  # aligned reads will attempt to add other stats
+  if(attr(metadata, "workflow") == "nf-rnaseq") {
+    syn_out <- attr(metadata, "outputDir")
+    samtools_stats_file <- find_nf_asset(find_parent(syn_out), asset = "samtools_stats", workflow = "nf-rnaseq")
+    metadata <- annotate_with_samtools_stats(metadata, samtools_stats_file)
+  }
+
   return(metadata)
 }
 
@@ -421,28 +431,23 @@ annotate_called_variants <- function(metadata,
 }
 
 
-#' Make annotations from workflow tool stats
+#' Make annotations from samtools stats
 #'
 #' Extracts a subset of [samtools stats](http://www.htslib.org/doc/samtools-stats.html)
-#' and [picard stats](https://broadinstitute.github.io/picard/picard-metric-definitions.html)
-#' from workflow metafiles to surface as annotations. Note: picard stats only for WGS/WES/targeted sequencing.
 #' Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 #' [AlignedReads](https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads)
 #'
 #' @param meta Data to which tool stats will be added as additional meta.
 #' @param samtools_stats_file Path to file/syn id of file with samtools stats produced by the workflow.
-#' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow.
 #' @export
-annotate_with_tool_stats <- function(meta,
-                                     samtools_stats_file = NULL,
-                                     picard_stats_file = NULL) {
+annotate_with_samtools_stats <- function(meta,
+                                         samtools_stats_file = NULL) {
   if(is.null(samtools_stats_file)) {
-    message("SAMtools stats not available, skipping these annotations...")
-    sam_stats <- NULL
+    message("  * ", "SAMtools stats not identified, skipping...")
   } else {
     sam_stats <- dt_read(samtools_stats_file)
     sam_stats <- sam_stats[,
-                           .(sample = Sample,
+                           .(specimenID = Sample,
                              averageInsertSize = insert_size_average,
                              averageReadLength = average_length,
                              averageBaseQuality = average_quality,
@@ -450,26 +455,10 @@ annotate_with_tool_stats <- function(meta,
                              readsDuplicatedPercent = reads_duplicated_percent,
                              readsMappedPercent = reads_mapped_percent,
                              totalReads = raw_total_sequences)]
+    meta <- merge(meta, sam_stats, all.x = TRUE, by = "specimenID")
+    message("  * ", "SAMtools stats added")
   }
-
-  if(is.null(picard_stats_file)) {
-    message("Picard stats not available, skipping these annotations...")
-    picard_stats <- NULL
-  } else { # TO DO
-    picard_stats <- dt_read(picard_stats_file)
-    picard_stats <- picard_stats[,
-                                 .(sample = Sample,
-                                   meanCoverage = MEAN_COVERAGE,
-                                   proportionCoverage10x = PCT_10X,
-                                   proportionCoverage30x = PCT_30X)]
-  }
-  result <- Reduce(function(x, y) merge(x, y, by = "sample"),
-                   Filter(is.data.table, list(sam_stats, picard_stats)))
-  if(!is.null(result) && !is.null(meta)) {
-    result <- merge(meta[, .(sample, entityId = output_id, output_name)], result, by = "sample", all.x = TRUE)[grepl(".bam$", output_name)]
-    for(col in c("sample", "output_name")) result[[col]] <- NULL
-  }
-  return(result)
+  return(meta)
 }
 
 
