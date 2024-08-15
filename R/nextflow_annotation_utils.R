@@ -132,11 +132,12 @@ map_sample_output_rnaseq <- function(syn_out,
 
     result[, workflow := "STAR and Salmon"]
     results[[.output]] <- result
-    setattr(results[[.output]], "outputFrom", .output)  # annotation within an annotation workflow...enable reasoning in later steps
+
+    # annotation within an annotation workflow... enables reasoning in later steps
+    setattr(results[[.output]], "outputFrom", .output)
+    setattr(results[[.output]], "workflow", "nf-rnaseq")
   }
 
-  # results <- rbindlist(results) # keep as separate datasets in list
-  attr(results, "workflow") <- "nf-rnaseq"
   return(results)
 }
 
@@ -180,10 +181,10 @@ map_sample_output_sarek <- function(syn_out,
     # Synapse `like` query is not case-sensitive
     path_spec <- switch(.output,
                         "CNVkit" = glue::glue("path like '{path}/%cnvkit%'"),
-                        "DeepVariant" = glue::glue("path like '{path}/%deepvariant%vcf.gz%'"),
-                        "Strelka2" = glue::glue("path like '{path}/%strelka%vcf.gz%'"),
-                        "Mutect2" = glue::glue("path like '{path}/%mutect%%vcf.gz%'"),
-                        "FreeBayes"= glue::glue("path like '{path}/%freebayes%vcf.gz%'"))
+                        "DeepVariant" = glue::glue("path like '{path}/%deepvariant%vcf.gz' or path like '{path}/%deepvariant%vcf.gz.tbi'"),
+                        "Strelka2" = glue::glue("path like '{path}/%strelka%vcf.gz' or path like '{path}/%strelka%vcf.gz.tbi'"),
+                        "Mutect2" = glue::glue("path like '{path}/%mutect%%vcf.gz' or path like '{path}/%mutect%%vcf.gz.tbi'"),
+                        "FreeBayes"= glue::glue("path like '{path}/%freebayes%vcf.gz' or path like '{path}/%freebayes%vcf.gz.tbi'"))
     query <- glue::glue("SELECT path, name as output_name, id as output_id from {fileview} where {path_spec} and type = 'file'")
     result <- as.data.table(.syn$tableQuery(query)$asDataFrame())
 
@@ -203,13 +204,19 @@ map_sample_output_sarek <- function(syn_out,
           file_index - 1 # i.e. `VariantCalling/<CALLER>/<SAMPLE>`
         }
       }
+
+      # Sample meta processing:
+      # For nf-sarek tumor somatic variant calling, sample references tumor vs normal from same indiv
+      # The sample assigned to the processed data is the tumor sample
       result[, sample := path_extract(path, index_fun = index_fun)]
+      if(grepl("_vs_", first(result$output_name))) result[, sample := gsub("_vs.*", "", sample)]
+
       results[[.output]] <- result
       setattr(results[[.output]], "outputFrom", .output)
+      setattr(results[[.output]], "workflow", "nf-sarek")
     }
   }
 
-  attr(results, "workflow") <- "nf-sarek"
   results
 }
 
@@ -220,17 +227,10 @@ map_sample_output_sarek <- function(syn_out,
 #'
 #' @param input Data from `map_sample_input_ss`.
 #' @param output Data from `map_sample_output_*`.
-#' @param workflow Either "nf-rnaseq" or "nf-sarek".
-#' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
+#' @return A table that includes `sample` `level` `output_id` `output_name` `input_id`.
 #' @export
 map_sample_io <- function(input,
-                          output,
-                          workflow) {
-
-
-  # Taking the first sample technically only matters for nf-sarek,
-  # where sample can contain 2 samples (tumor vs normal from same indiv)
-  if(workflow == "nf-sarek") output[, sample := sapply(sample, first)]
+                          output) {
 
   # Check that sample ids in sample_outputs are in sample_inputs
   # Presumed OK for sample_inputs to contain samples *not* in outputs
@@ -239,7 +239,9 @@ map_sample_io <- function(input,
     stop("Issue found: samples present in outputs are not referenced in inputs.", call. = F)
   }
   sample_io <- merge(output, input, by = "sample", all.x = TRUE, all.y = FALSE)
+
   setattr(sample_io, "outputFrom", attr(output, "outputFrom"))
+  setattr(sample_io, "workflow", attr(output, "workflow"))
   return(sample_io)
 }
 
@@ -474,17 +476,16 @@ annotate_with_tool_stats <- function(meta,
 #' Wrapper for all steps to get manifest for processed product
 #'
 #' @inheritParams map_sample_io
+#' @param
 #' @param workflow_link Workflow link.
 #' @export
 #' @return List `manifest` with manifests for each processed dataset,
 #' and `sample_io` with linked inputs and outputs (should be used for provenance annotation).
 processed_meta <- function(input,
                            output,
-                           workflow,
                            workflow_link) {
 
-  workflow <- attr(output, "workflow")
-  sample_io_list <- lapply(output, function(o) map_sample_io(input, o, workflow))
+  sample_io_list <- lapply(output, function(o) map_sample_io(input, o))
   sample_io <- rbindlist(sample_io_list)
   sample_io[, workflowLink := workflow_link]
 
