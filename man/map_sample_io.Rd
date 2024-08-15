@@ -4,17 +4,15 @@
 \alias{map_sample_io}
 \title{Map sample input-output}
 \usage{
-map_sample_io(input, output, workflow)
+map_sample_io(input, output)
 }
 \arguments{
 \item{input}{Data from \code{map_sample_input_ss}.}
 
 \item{output}{Data from \verb{map_sample_output_*}.}
-
-\item{workflow}{Either "nf-rnaseq" or "nf-sarek".}
 }
 \value{
-A table with \code{sample} \code{level} \code{output_id} \code{output_name} \code{input_id}.
+A table that includes \code{sample} \code{level} \code{output_id} \code{output_name} \code{input_id}.
 }
 \description{
 Wrapper to map sample inputs and outputs depending on workflow type.

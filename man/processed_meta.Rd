@@ -4,14 +4,12 @@
 \alias{processed_meta}
 \title{Metadata for processed products}
 \usage{
-processed_meta(input, output, workflow, workflow_link)
+processed_meta(input, output, workflow_link)
 }
 \arguments{
 \item{input}{Data from \code{map_sample_input_ss}.}
 
 \item{output}{Data from \verb{map_sample_output_*}.}
-
-\item{workflow}{Either "nf-rnaseq" or "nf-sarek".}
 
 \item{workflow_link}{Workflow link.}
 }
