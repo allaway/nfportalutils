@@ -74,6 +74,8 @@ map_sample_input_ss <- function(samplesheet,
 
   # File inputs for each sample specimen
   sample_inputs <- ss[, .(input_id = list(na.omit(c(input_syn_1, input_syn_2)))), by = sample]
+
+  message("Input samplesheet parsed.")
   return(sample_inputs)
 }
 
