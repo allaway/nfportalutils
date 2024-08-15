@@ -55,6 +55,14 @@ find_child <- function(child_name, parent) {
   child_id
 }
 
+#' Find parent
+#'
+#' @param id Synapse id
+#' @export
+find_parent <- function(id) {
+  .syn$get(syn_out, downloadFile = F)$properties$parentId
+}
+
 
 #' Find children of type
 #'
