@@ -45,9 +45,6 @@ get back a list of manifests that represent all useful dataset products from the
 
 These manifests can then be used to annotate the files as well as for creation of [Synapse Datasets](https://help.synapse.org/docs/Datasets.2611281979.html). 
 
-### Limitations
-
-- If sample ids and other information are updated on the original raw input files, data must reannotated (synced).
 
 ## Set up
 
@@ -72,6 +69,11 @@ and get into format expected for downstream.
 4. Transfer other meta from input to output processed files (most important are `individualID`, basic individual attributes, `assay`).  
 5. Set annotations for processed data type based on workflow default rules.
 
+Given the above steps, some potential issues should be noted:
+- Processed data files will also be missing or incorrect for anything annotations in that state for input files 
+- If sample ids and other information are updated on the original raw input files, data must be reannotated.
+- Anything that deviates from a relatively standard workflow run, leading to changes in locations or naming of outputs,
+might yield poor results for the annotation functionality here or require more manual composition of steps.
 
 ## nf-rnaseq 
 
@@ -105,16 +107,21 @@ input <- map_sample_input_ss(samplesheet)
 output <- map_sample_output_rnaseq(syn_out, fileview)
 meta <- processed_meta(input, output, workflow_link = wf_link)
 
-# View the first dataset manifest in meta
-
-meta$manifests$`STAR and Salmon`
-
 ```
 
 
+Inspect some manifests:
+```{r, eval=FALSE}
+ head(meta$manifests$SAMtools)
+```
+
+```{r, eval=FALSE}
+head(meta$manifests$`STAR and Salmon`
+```
+
 ### Add provenance
 
-Add provenance for the files involved using `add_activity_batch`. 
+Use `sample_io` to add provenance meta with `add_activity_batch`. 
 
 "Workflow" provides the general name to the activity, 
 while "workflow link" provides a more persistent reference to some version/part of the workflow, 
@@ -127,18 +134,6 @@ prov <- add_activity_batch(sample_io$output_id,
                            sample_io$workflow, 
                            wf_link,
                            sample_io$input_id)
-```
-
-### Validate manifest
-
-Manifests can be inspected and validated using schematic before submission.
-To do so, it has to be written to a .csv first. 
-
-```{r rnaseq-meta-validate, eval=FALSE}
-
-fwrite(manifest_1, "manifest_1.csv")
-manifest_validate(data_type = , file_name = "manifest_1.csv")
-
 ```
 
 ### Submit manifest
@@ -199,4 +194,5 @@ add_activity_batch(sample_io$output_id,
    
 ```
 
-Validating manifests, submitting manifests, and making datasets can follow the rna-seq examples above.
+After provenance, the rest of the workflow for manifest submission or creating datasets is like the nf-rnaseq example.
+
