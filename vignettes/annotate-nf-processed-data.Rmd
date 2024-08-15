@@ -17,42 +17,98 @@ knitr::opts_chunk$set(
 
 ## Intro
 
-This vignette documents in-practice usage of the annotation utils for nf-processed data files;
-it will probably updated as practices and underlying functions are refined. 
+### Purpose
 
-If you copy and paste some code to try out, you will need at least read access.
-The code to modify the entities' provenance/annotations are not evaluated.
+This vignette documents in-practice usage of the annotation utils for nf-processed data files.
 
-## Important note
+The outputs are:  
+1. A metadata manifest for a processed dataset that can be further validated with schematic before submission.
+2. Provenance meta.
 
-You may notice one minor difference in the annotation utils for RNA-seq expression vs variant calling data.
-The main difference is that one will add workflow directly, while the other doesn't. 
-This is a design change that will be made more consistent across the annotation functions going forward, 
-where workflow values will be added for everything by default, and functions will be kept up to date to make consistency easy for DCC staff.
-For non-nf-processed data, values can still be overridden. 
+Typically, these are inspected/validated before submitting to Synapse as a final followup step.
+
+Examples can be run with READ access only to processed outputs,
+but requires you to have DOWNLOAD access or a local copy of the input samplesheet. 
+To actually apply any annotations of course requires EDIT access.
+
+### General idea 
+
+<img src="https://raw.githubusercontent.com/nf-core/rnaseq/3.14.0//docs/images/nf-core-rnaseq_metro_map_grey.png" alt="nf-core-rnaseq_metro_map" width="800"/>
+
+A nextflow workflow generates different types of outputs along the steps in the workflow (see figure above).
+At some of these steps/stops, we have products that can be collected and packaged into "level 2, 3, or 4" datasets.
+For example, the `.bam/bai` outputs from SAMtools represent a "level 2" semi-processed dataset with a dataType of `AlignedReads`.
+
+Ideally, we would simply like to point to the main folder containing all processed output files and 
+get back a list of manifests that represent all useful dataset products from the workflow. 
+(What is a "useful", selectable data product is encoded in this annotation workflow.)
+
+These manifests can then be used to annotate the files as well as for creation of [Synapse Datasets](https://help.synapse.org/docs/Datasets.2611281979.html). 
+
+### Limitations
+
+- If sample ids and other information are updated on the original raw input files, data must reannotated (synced).
 
 ## Set up
 
 First load the `nfportalutils` package and log in. 
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
-Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
+Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein.
 ```{r setup, eval=FALSE}
 library(nfportalutils)
 library(data.table)
 syn_login()
 ```
 
+### Steps
+
+The general annotation workflow steps are:  
+1. Parse the input samplesheet.  
+2. Get basic context of processed outputs from the workflow run.  
+Because none of the indexed-back output files have annotations,
+we have to first construct initial info **sample**, **caller**, etc. out of the good ol' folder hierarchy and file names.  
+3. Now with some sample and workflow context at least, link input-output data appropriately, check sample correspondence, 
+and get into format expected for downstream.  
+4. Transfer other meta from input to output processed files (most important are `individualID`, basic individual attributes, `assay`).  
+5. Set annotations for processed data type based on workflow default rules.
+
+
 ## nf-rnaseq 
 
-### Creating helper resource files
+Use `?map_sample_output_rnaseq` to see which outputs are handled in the parameter `output`. 
+**But note that depending on how the workflow was run and data indexed back into Synapse, actual output availability may differ.**
 
-To add annotations and provenance, we need a reference mapping of inputs and outputs involved in the workflow.
-The below puts together a table representing this mapping by parsing the samplesheet in combination with the output directory ("star_salmon"). 
-For the nextflow rna-seq workflow, the samplesheet is an output file in "pipeline_info".
-```{r rnaseq-resources, eval=FALSE}
-sample_io <- map_sample_io(workflow = "nf-rnaseq",
-                           samplesheet = "syn30841441", # synapse file
-                           syn_out = "syn30840584")
+In some projects, bam/bai files may not even be indexed back into Synapse. 
+As an illustrative example, the workflow outputs here does not include featureCounts:
+
+```{r rnaseq-1, eval=FALSE}
+
+syn_out <- "syn57382909"
+fileview <- "syn11601495"
+
+o <- map_sample_output_rnaseq(syn_out, fileview) # check outputs only
+names(o)
+
+```
+
+To continue, the example uses this output directory that does have all present from a standard nf-rnaseq workflow.
+(Review the source code for `processed_meta` to see the steps encapsulated.)
+
+```{r rnaseq-full, eval=FALSE}
+
+samplesheet <- "syn51408030"
+syn_out <- "syn51476810"
+fileview <- "syn11601481"
+wf_link <- "https://nf-co.re/rnaseq/3.11.2/output#star-and-salmon"
+
+input <- map_sample_input_ss(samplesheet)
+output <- map_sample_output_rnaseq(syn_out, fileview)
+meta <- processed_meta(input, output, workflow_link = wf_link)
+
+# View the first dataset manifest in meta
+
+meta$manifests$`STAR and Salmon`
+
 ```
 
 
@@ -60,108 +116,71 @@ sample_io <- map_sample_io(workflow = "nf-rnaseq",
 
 Add provenance for the files involved using `add_activity_batch`. 
 
-A workflow link is used (instead of just a name) because it is is a more specific reference with versions 
-and others can be follow the link to get details of the workflow. 
+"Workflow" provides the general name to the activity, 
+while "workflow link" provides a more persistent reference to some version/part of the workflow, 
+which others can follow the link to get details. 
 
 ```{r rnaseq-add-provenance, eval=FALSE}
 
-wf_link <- "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"
+sample_io <- meta$sample_io
 prov <- add_activity_batch(sample_io$output_id, 
                            sample_io$workflow, 
                            wf_link,
                            sample_io$input_id)
 ```
 
+### Validate manifest
 
-### Add annotations
+Manifests can be inspected and validated using schematic before submission.
+To do so, it has to be written to a .csv first. 
 
-Annotations expected for aligned reads output are different from quantified expression output. 
-This is handled by a couple of specialized functions.
+```{r rnaseq-meta-validate, eval=FALSE}
 
-#### Aligned reads data files
-
-First, it helps to see the template for the aligned reads`(.bam`) data.  
-```{r rnaseq-see-annotations-bam, eval=FALSE}
-
-template <- "bts:ProcessedAlignedReadsTemplate"
-schema <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
-props <- get_dependency_from_json_schema(id = template)
-props
-```
-
-This looks like a large number of different annotations to put together (though most are optional). 
-Fortunately, the utility `annotate_aligned_reads` will try to do much of the work. 
-It will look for the `.bam` files and generate annotations for those `.bam` files.
-The template and schema mentioned above are the defaults so don't have to be specified explicitly. 
-But it's recommended to read the docs (`?annotate_aligned_reads`) for details on how annotations are added, 
-to know what remains to be filled in manually.
-
-Annotations expected to be set manually each time include `genomicReference` and `workflowLink`, which we also just set in provenance. 
-Why:
-- These are recommended to be surfaced both in provenance and annotations because only annotations are queryable in the portal currently.
-- These need to be set manually because reference and versions are likely to change between workflow runs. 
-
-```{r rnaseq-make-annotations-bam, eval=FALSE}
-
-l2_manifest <- annotate_aligned_reads(sample_io,
-                                      samtools_stats_file = "syn30841284",
-                                      dry_run = TRUE)
-
-l2_manifest[, genomicReference := "GRCh38"]
-l2_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
+fwrite(manifest_1, "manifest_1.csv")
+manifest_validate(data_type = , file_name = "manifest_1.csv")
 
 ```
 
+### Submit manifest
 
-This looks good, so we can go ahead and apply the annotations:
-```{r rnaseq-apply-annotations-l2, eval=FALSE}
-
-annotate_with_manifest(l2_manifest)
+```{r rnaseq-meta-submit, eval=FALSE}
+annotate_with_manifest(manifest_1)
 ```
 
-Note that instead of submitting as above, we can make this a schematic-compatible manifest to submit via DCA.
+### Create dataset
 
+To create a [Synapse Dataset](https://help.synapse.org/docs/Datasets.2611281979.html):
 
-#### Expression data files
+```{r rnaseq-dataset, eval=FALSE}
 
-Another convenience function is provided to help annotate gene expression data files.
-
-```{r rnaseq-add-annotations-l3, eval=FALSE}
-
-l3_manifest <- annotate_expression(sample_io, dry_run = TRUE)
-l3_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
-annotate_with_manifest(l3_manifest)
-```
-
-
-Now, to create a [Synapse dataset](https://help.synapse.org/docs/Datasets.2611281979.html) out of this set of files:
-```{r rnaseq-dataset-l2, eval=FALSE}
-
-nf_star_salmon_datasets(l3_manifest, 
-                        parent = parent_project,
-                        dry_run = FALSE)
+items <- manifest_1$entityId
+project <- "your-dev-project-synid"
+dataset_1 <- new_dataset(name = "STAR Salmon Gene Expression Quantification from RNA-seq",
+                         parent = project,
+                         items = items,
+                         dry_run = FALSE)
 ```
 
 
 ## nf-sarek
 
-As the second part of this vignette will show, the process for variant data is not much different,
-though mapping inputs-outputs can be somewhat slower.
+The only difference is usage of `map_sample_output_sarek` at Step 2.
 
-### Creating helper resource files
-```{r sarek-resources, eval=FALSE}
+```{r sarek-dataset, eval=FALSE}
 
-sample_io <- map_sample_io(
-  workflow =  "nf-sarek",
-  samplesheet = "sarek_JH_WU_mixed_kit_samples.csv", # local file,
-  syn_out = "syn52593603",
-  sample_level = 3
-)
+samplesheet <- "syn38793905" # samplesheet can be stored on Synapse or locally
+syn_out <- "syn27650634"
+fileview <- "syn13363852"
 
-# Modify workflow assignment a bit
-sample_io[workflow =="strelka", workflow := "Strelka2"]
-sample_io[workflow =="mutect2", workflow := "Mutect2"]
+i <- map_sample_input_ss(samplesheet) #1
+o <- map_sample_output_sarek(syn_out, fileview) #2
+sarek_meta <- processed_meta(i, o, workflow_link = "test")
+
+# View first manifest
+sarek_meta$manifests$Strelka2
+
 ```
+
 
 ### Add provenance
 
@@ -180,25 +199,4 @@ add_activity_batch(sample_io$output_id,
    
 ```
 
-### Add annotations
-
-The `annotate_called_variants` util is used for both somatic and germline results, and will automatically try to fill in the right values. 
-However, you can set these in the parameters directly -- see `?annotate_called_variants`.
-This returns a manifest for examination and correction has needed.
- 
-```{r sarek-make-annotations, eval=FALSE}
-
-manifest <- annotate_called_variants(sample_io, 
-                                     workflow_ref = wf_link[sample_io$workflow])
-
-```
-
-For example, if you used a slightly different version/fork, you should update it manually in the manifest.
-Otherwise, apply the annotations:
-```{r sarek-apply-manifest, eval=FALSE}
-
-annotate_with_manifest(manifest)
-```
-
-
-
+Validating manifests, submitting manifests, and making datasets can follow the rna-seq examples above.
