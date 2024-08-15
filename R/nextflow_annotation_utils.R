@@ -333,9 +333,11 @@ annotate_aligned_reads <- function(metadata,
                                    verbose = TRUE) {
 
   outputFrom <- attr(metadata, "outputFrom")
+  template <- sub("bts:", "", attr(metadata, "template"))
   if(verbose) message("Running annotate_aligned_reads for ", outputFrom)
 
   format_as <- annotation_rule(outputFrom, "format_as")
+  metadata[, Component := template]
   metadata[, fileFormat := format_as(Filename)]
   metadata[, dataType := "AlignedReads"]
   metadata[, dataSubtype := "processed"]
@@ -369,6 +371,7 @@ annotate_quantified_expression <- function(metadata,
                                            verbose = TRUE) {
 
   outputFrom <- attr(metadata, "outputFrom")
+  template <- sub("bts:", "", attr(metadata, "template"))
   if(verbose) message("Running annotate_quantified_expression for ", outputFrom)
 
   format_as <- annotation_rule(outputFrom, "format_as")
@@ -376,6 +379,7 @@ annotate_quantified_expression <- function(metadata,
                             "STAR and Salmon" = "TPM",
                             "featureCounts" = "Counts")
 
+  metadata[, Component := template]
   metadata[, fileFormat := format_as(Filename)]
   metadata[, dataType := "geneExpression"]
   metadata[, dataSubtype := "processed"]
@@ -402,6 +406,7 @@ annotate_called_variants <- function(metadata,
                                      verbose = TRUE) {
 
     outputFrom <- attr(metadata, "outputFrom")
+    template <- sub("bts:", "", attr(metadata, "template"))
     if(verbose) message("Running annotate_called_variants for ",  outputFrom)
 
     # vcfs can be annotated type, workflow stops at Variant Calling bc we run a custom nf-vcf2maf
@@ -422,6 +427,7 @@ annotate_called_variants <- function(metadata,
     }
 
     format_as <- annotation_rule(outputFrom, "format_as")
+    metadata[, Component := template]
     metadata[, fileFormat := format_as(Filename)]
     metadata[, dataType := data_type_assign(Filename, fileFormat), by = entityId]
     metadata[, dataSubtype := "processed"]
