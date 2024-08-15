@@ -257,6 +257,8 @@ map_sample_io <- function(input,
 #' @param template Which template to use when deriving annotations.
 #' This controls which attributes are relevant for transfer/keep.
 #' If not given, will use whatever is set for the attribute "template".
+#' @param schema Reference to data model source.
+#' @param verbose Whether to output detailed messages.
 #' @keywords internal
 derive_annotations <- function(sample_io,
                                template = NULL,
@@ -264,11 +266,10 @@ derive_annotations <- function(sample_io,
                                verbose = TRUE) {
 
   outputFrom <- attr(sample_io, "outputFrom")
-  if(verbose) message(glue::glue("Deriving annotations for {nrow(sample_io)} files from {outputFrom}..."))
+  if(is.null(template)) template <- annotation_rule(outputFrom, "template")
 
-  if(is.null(template)) {
-    template <- annotation_rule(outputFrom, "template")
-  }
+  if(verbose) message(glue::glue("Deriving annotations for {nrow(sample_io)} files from {outputFrom} with {template}"))
+
   props <- get_dependency_from_json_schema(id = template, schema = schema)
 
   datatype_attrs <-  c("Component", "fileFormat", "dataType", "dataSubtype")
@@ -335,7 +336,7 @@ annotate_aligned_reads <- function(metadata,
   metadata[, workflowLink := workflow_link]
   metadata[, genomicReference := genomic_reference]
 
-  if(verbose) message(genomic_reference, " used for genomicReference")
+  if(verbose) message("  * ", genomic_reference, " used for genomicReference")
   return(metadata)
 }
 
@@ -367,7 +368,7 @@ annotate_quantified_expression <- function(metadata,
   metadata[, expressionUnit := expression_unit]
   metadata[, workflowLink := workflow_link]
 
-  if(verbose) message(expression_unit, " used for expressionUnit")
+  if(verbose) message("  * ", expression_unit, " used for expressionUnit")
   return(metadata)
 }
 
@@ -490,7 +491,7 @@ processed_meta <- function(input,
   manifests <- lapply(sample_io_list, function(sample_io) {
     sample_io |>
       derive_annotations() |>
-      annotate_processed(workflowLink = workflow_link)
+      annotate_processed(workflow_link = workflow_link)
   })
   return(
     list(manifests = manifests,

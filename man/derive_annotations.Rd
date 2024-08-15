@@ -18,6 +18,10 @@ derive_annotations(
 \item{template}{Which template to use when deriving annotations.
 This controls which attributes are relevant for transfer/keep.
 If not given, will use whatever is set for the attribute "template".}
+
+\item{schema}{Reference to data model source.}
+
+\item{verbose}{Whether to output detailed messages.}
 }
 \description{
 A processed or derived file can inherit annotations from the input file(s).
