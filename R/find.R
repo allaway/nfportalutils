@@ -101,23 +101,23 @@ find_data_root <- function(project_id) {
 #'
 #' @param syn_out Id of top-level folder that corresponds to `publishDir` in a nextflow workflow.
 #' @param asset Name of asset to find.
-#' @param workflow Specify workflow, "rna-seq" or "sarek"; defaults to "rna-seq"
+#' @param workflow Specify workflow, "nf-rnaseq" or "nf-sarek"; defaults to "nf-rnaseq".
 #' @returns Id of samplesheet.
 #' @export
 find_nf_asset <- function(syn_out,
                           asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats"),
-                          workflow = "rna-seq") {
+                          workflow = "nf-rnaseq") {
 
   asset <- match.arg(asset)
   # Assets and paths can differ slightly depending on workflow, except for `software_versions.yml`, get workflow first
-  if(workflow == "rna-seq") {
+  if(workflow ==  "nf-rnaseq") {
     path <- switch(asset,
                    software_versions = "pipeline_info/software_versions.yml",
                    multiqc_report = "multiqc/star_salmon/multiqc_report.html",
                    samplesheet = "pipeline_info/samplesheet.valid.csv",
                    samtools_stats = "multiqc/star_salmon/multiqc_data/multiqc_samtools_stats.txt"
     )
-  } else if(workflow == "sarek") {
+  } else if(workflow == "nf-sarek") {
     path <- switch(asset,
                    software_versions = "pipeline_info/software_versions.yml",
                    multiqc_report = "multiqc/multiqc_report.html",
@@ -127,9 +127,7 @@ find_nf_asset <- function(syn_out,
     stop("Unrecognized workflow.")
   }
 
-  id <- find_in(syn_out, path)
-  if(is.null(id)) stop("File not found. Is this the right output directory/path?")
-  id
+  find_in(syn_out, path) # NULL if not found
 }
 
 
