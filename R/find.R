@@ -109,7 +109,7 @@ find_nf_asset <- function(syn_out,
                           workflow = "nf-rnaseq") {
 
   asset <- match.arg(asset)
-  # Assets and paths can differ slightly depending on workflow, except for `software_versions.yml`, get workflow first
+  # Assets and paths can differ slightly depending on workflow except for `software_versions.yml`
   if(workflow ==  "nf-rnaseq") {
     path <- switch(asset,
                    software_versions = "pipeline_info/software_versions.yml",
