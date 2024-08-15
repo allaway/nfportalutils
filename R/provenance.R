@@ -58,16 +58,3 @@ delete_provenance <- function(entities) {
   }
 }
 
-### Validate manifest
-
-Manifests can be inspected and validated using schematic before submission.
-To do so, it has to be written to a .csv first.
-
-```{r rnaseq-meta-validate, eval=FALSE}
-
-manifest_1 <- meta$manifests$`STAR and Salmon`
-template <- sub("bts:", "", attr(manifest_1, "template"))
-fwrite(manifest_1, "manifest_1.csv")
-manifest_validate(data_type = template, file_name = "manifest_1.csv")
-
-```
