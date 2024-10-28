@@ -60,7 +60,10 @@ add_new_study_meta <- function(id, study_meta) {
     "dataStatus",
     "grantDOI",
     "relatedStudies",
-    "studyFileviewId")]
+    "studyFileviewId",
+    "grantStartDate",
+    "grantEndDate",
+    "embargoEndDate")]
 
   if(is.null(study_meta$studyStatus) || is.na(study_meta$studyStatus)) study_meta$studyStatus <- "Active"
   if(is.null(study_meta$dataStatus) || is.na(study_meta$dataStatus)) study_meta$dataStatus <- "Data Pending"
