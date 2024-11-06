@@ -59,7 +59,7 @@ syn_login()
 
 ### Steps
 
-The general annotation workflow steps are:  
+**The general annotation workflow steps are:**  
 1. Parse the input samplesheet.  
 2. Get basic context of processed outputs from the workflow run.  
 Because none of the indexed-back output files have annotations,
@@ -69,19 +69,22 @@ and get into format expected for downstream.
 4. Transfer other meta from input to output processed files (most important are `individualID`, basic individual attributes, `assay`).  
 5. Set annotations for processed data type based on workflow default rules.
 
-Given the above steps, some potential issues should be noted:
-- Processed data files will also be missing or incorrect for anything annotations in that state for input files 
-- If sample ids and other information are updated on the original raw input files, data must be reannotated.
+**Some potential issues should be noted:**    
+
+- If input files have missing or incorrect annotations, processed files will have missing or incorrect annotations.  
+- If sample ids and other information are updated on the original raw input files, data must be reannotated by rerunning the pipeline.  
 - Anything that deviates from a relatively standard workflow run, leading to changes in locations or naming of outputs,
-might yield poor results for the annotation functionality here or require more manual composition of steps.
+might yield poor results or require more manual composition of steps. Standard organization and naming of files is very important.    
 
 ## nf-rnaseq 
+
+### What does output look like?
 
 Use `?map_sample_output_rnaseq` to see which outputs are handled in the parameter `output`. 
 **But note that depending on how the workflow was run and data indexed back into Synapse, actual output availability may differ.**
 
 In some projects, bam/bai files may not even be indexed back into Synapse. 
-As an illustrative example, the workflow outputs here does not include featureCounts:
+As an illustrative example, the workflow outputs here **does not** include **featureCounts**:
 
 ```{r rnaseq-1, eval=FALSE}
 
@@ -93,7 +96,78 @@ names(o)
 
 ```
 
-To continue, the example uses this output directory that does have all present from a standard nf-rnaseq workflow.
+### What does input look like?
+
+Like output, input is just another index of files and is actually the samplesheet used by the workflow to know what files to process. Samplesheets should be public and placed in the `pipeline_info` directory as part of the workflow (most of the time).
+
+**IMPORTANT: The samplesheet needs to be standard enough to parse correctly, i.e. to extract valid file Synapse ids from the first fastq.** We use the same helper to parse samplesheets for the two workflows (both RNA-seq and Sarek), and the function will do its best to handle slight variations in samplesheet formats. Here are examples of what will work vs not:
+
+- ✔ OK. Excerpt from real samplesheet [syn51525432](https://www.synapse.org/Synapse:syn51525432).
+```{r ok-samplesheet-1, echo=FALSE, eval=TRUE}
+
+ss1 <- data.frame(
+  sample = c("JH-2-019-DB5EH-C461C", "JH-2-007-B14BB-AG2A6", "JH-2-009-518B9-77BH3"),
+  fastq_1 = c("syn15261791", "syn15261974", "syn15262157"),
+  fastq_2 = c("syn15261900", "syn15262033", "syn15262216"),
+  strandedness = c("auto", "auto", "auto"),
+  stringsAsFactors = FALSE
+)
+
+ss1
+
+```
+
+- ✔ OK. Excerpt from real samplesheet [syn63172939](https://www.synapse.org/Synapse:syn63172939).
+```{r ok-samplesheet-2, echo=FALSE, eval=TRUE}
+
+ss2 <- data.frame(
+  subject = c("JHU002", "JHU002", "JHU023"),
+  sex = c("XY", "XY", "XY"),
+  status = c(1, 1, 1),
+  sample = c("JHU002-043", "JHU002-048", "JHU023-044"),
+  lane = c("JHU002-043-Lane-1", "JHU002-048-Lane-1", "JHU023-044-Lane-1"),
+  fastq1 = c("syn://syn22091879", "syn://syn22091925", "syn://syn22091973"),
+  fastq2 = c(NA, NA, NA),
+  datasetId = c("syn29783617", "syn29783617", "syn29783617"),
+  projectId = c("syn11638893", "syn11638893", "syn11638893"),
+  output_destination_id = c("syn29429576", "syn29429576", "syn29429576"),
+  Germline = c("Y", "Y", "Y"),
+  Somatic = c(NA, NA, NA),
+  stringsAsFactors = FALSE
+)
+
+ss2
+
+```
+
+- ✖ No. Adapted from real samplesheet [syn63172939](https://www.synapse.org/Synapse:syn63172939). 
+This will give an error because "x6" is not a valid Synapse ID. A manually corrected samplesheet will have to be provided. 
+```{r bad-samplesheet, echo=FALSE, eval=TRUE}
+
+ss3 <- data.frame(
+  sample = c("patient10tumor1_T1", "patient10tumor2_T1", "patient10tumor3_T1"),
+  single_end = c(0, 0, 0),
+  fastq_1 = c(
+    "s3://some-tower-bucket/syn40134517/x6/SL106309_1.fastq.gz",
+    "s3://some-tower-bucket/syn40134517/syn7989846/SL106310_1.fastq.gz",
+    "s3://some-tower-bucket/syn40134517/syn7989852/SL106311_1.fastq.gz"
+  ),
+  fastq_2 = c(
+    "s3://some-tower-bucket/syn40134517/syn7989839/SL106309_2.fastq.gz",
+    "s3://some-tower-bucket/syn40134517/syn7989847/SL106310_2.fastq.gz",
+    "s3://some-tower-bucket/syn40134517/syn7989856/SL106311_2.fastq.gz"
+  ),
+  strandedness = c("auto", "auto", "auto"),
+  stringsAsFactors = FALSE
+)
+
+ss3
+
+```
+
+### Connecting input and output to automate filled manifests
+
+In contrast with the previous example, run this other example for an output directory that *does* all types of outputs we're looking for in an nf-rnaseq workflow. This will be used for the rest of the demo. 
 (Review the source code for `processed_meta` to see the steps encapsulated.)
 
 ```{r rnaseq-full, eval=FALSE}
@@ -104,24 +178,31 @@ fileview <- "syn11601481"
 wf_link <- "https://nf-co.re/rnaseq/3.11.2/output#star-and-salmon"
 
 input <- map_sample_input_ss(samplesheet)
+# Alternatively, use a local file if not on Synapse:
+# input <-  map_sample_input_ss("~/work/samplesheet.csv")
 output <- map_sample_output_rnaseq(syn_out, fileview)
+names(output)
+```
+
+Generate the manifests and inspect an example result:
+```{r, eval=FALSE}
 meta <- processed_meta(input, output, workflow_link = wf_link)
-
+head(meta$manifests$SAMtools)
 ```
 
+### Submit manifest
 
-Inspect some manifests:
-```{r, eval=FALSE}
- head(meta$manifests$SAMtools)
-```
+Manifests can be submitted with [schematic](https://schematic.api.sagebionetworks.org/v1/ui/#)-compatible or using `annotate_with_manifest` as shown below.
 
-```{r, eval=FALSE}
-head(meta$manifests$`STAR and Salmon`
+```{r rnaseq-meta-submit, eval=FALSE}
+mannifest_1 <- meta$manifests$SAMtools
+annotate_with_manifest(manifest_1)
 ```
 
 ### Add provenance
 
-Use `sample_io` to add provenance meta with `add_activity_batch`. 
+Provenance is basically an annotation, though treated somewhat differently in Synapse. 
+In the result `meta` object, there is something called `sample_io` that can be provided to `add_activity_batch` to add provenance. 
 
 "Workflow" provides the general name to the activity, 
 while "workflow link" provides a more persistent reference to some version/part of the workflow, 
@@ -136,11 +217,6 @@ prov <- add_activity_batch(sample_io$output_id,
                            sample_io$input_id)
 ```
 
-### Submit manifest
-
-```{r rnaseq-meta-submit, eval=FALSE}
-annotate_with_manifest(manifest_1)
-```
 
 ### Create dataset
 
