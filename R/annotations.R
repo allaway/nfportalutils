@@ -4,6 +4,7 @@
 #' @param id Synapse entity id.
 #' @param annotations A flat list representing annotation key-value pairs,
 #' e.g. `list(foo = "bar", rank = 1, authors = c("jack", "jane"))`
+#' @export
 set_annotations <- function(id, annotations) {
   e_annotations <- .syn$get_annotations(id)
   for (k in names(annotations)) {
