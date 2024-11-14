@@ -18,5 +18,5 @@ If not specified, will copy over everything, which may not be desirable.}
 }
 \description{
 Copy annotations (all or selectively) from a source entity to one or more target entities.
-If annotations already exist on target entities, the copy will replace the current values.
+If same annotation keys already exist on target entities, the copy will replace the current values.
 }
