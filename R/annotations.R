@@ -69,12 +69,12 @@ copy_annotations <- function(entity_from,
     select <- select[select %in% names(from_annotations)]
   }
 
-  for(e in entity_to) {
-    to_annotations <- .syn$get_annotations(e)
+  for(id in entity_to) {
+    to_annotations <- .syn$get_annotations(id)
     for(k in select) {
       to_annotations[k] <- from_annotations[k]
     }
-    if(update) .syn$set_annotations(to_annotations) else to_annotations
+    if(update) .syn$set_annotations(to_annotations) else return(to_annotations)
   }
 }
 
