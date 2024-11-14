@@ -8,20 +8,21 @@
 The goal of `nfportalutils` is to provide convenience functions for project and (meta)data management in the NF-OSI data portal scope. 
 Currently, `develop` branch is default so package install and docs refer to code in this branch.  
 
+The package interops with the [Python synapse client](https://github.com/Sage-Bionetworks/synapsePythonClient) via reticulate.
+You will have to set up both (see #Installation). Outside of the tested versions, there may be some issues. The tested versions are:
+- Python Synapse Client == 4.3.1
+- reticulate == 1.39.0
+
 ## Docs
 
 :point_right: [Package documentation!](https://nf-osi.github.io/nfportalutils/)  
 
 ## Installation
 
-You can install `nfportalutils` from here:
-
-``` r
-remotes::install_github("nf-osi/nfportalutils")
-```
-
-The package interops with the [Python synapse client](https://github.com/Sage-Bionetworks/synapsePythonClient) via reticulate.
-You will have to download the Python synapse client first.
+1. Install `reticulate` following guide at https://rstudio.github.io/reticulate/index.html#installation. 
+2. Install `synapseclient==4.3.1` following https://rstudio.github.io/reticulate/articles/python_packages.html, which will use a default environment "r-reticulate". 
+3. Lastly,  install `nfportalutils`: `remotes::install_github("nf-osi/nfportalutils")`. 
+At startup, `nfportalutils` imports `synapseclient` from the default "r-reticulate".
 
 ## For Users
 
