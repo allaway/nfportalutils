@@ -163,7 +163,7 @@ infer_data_type <- function(dataset_id) {
   children <- first(children, 3)
   data_type <- c()
   for (entity in children) {
-    e <- .syn$getAnnotations(entity)
+    e <- .syn$get_annotations(entity)
     data_type <- append(data_type, e$Component)
   }
   data_type <- unique(data_type)
