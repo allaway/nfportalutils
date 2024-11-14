@@ -111,9 +111,9 @@ calculate_related_studies <- function(study_table_id,
     for(i in 1:nrow(studies_updated)) {
       id <- studies_updated[i, "studyId"]
       relatedStudies <- studies_updated[i, "relatedStudies"]
-      annotations <- .syn$getAnnotations(id)
+      annotations <- .syn$get_annotations(id)
       annotations$relatedStudies <- relatedStudies
-      invisible(.syn$setAnnotations(id, annotations))
+      invisible(set_annotations(id, annotations))
     }
   } else {
     studies_updated
