@@ -19,10 +19,16 @@ You will have to set up both (see #Installation). Outside of the tested versions
 
 ## Installation
 
+This presumes you have already set up R with RStudio.
+
 1. Install `reticulate` following guide at https://rstudio.github.io/reticulate/index.html#installation. 
 2. Install `synapseclient==4.3.1` following https://rstudio.github.io/reticulate/articles/python_packages.html, which will use a default environment "r-reticulate". 
-3. Lastly,  install `nfportalutils`: `remotes::install_github("nf-osi/nfportalutils")`. 
-At startup, `nfportalutils` imports `synapseclient` from the default "r-reticulate".
+3. Lastly,  install `nfportalutils`. At startup, `nfportalutils` imports `synapseclient` from the default "r-reticulate". 
+ - As regular users: `remotes::install_github("nf-osi/nfportalutils", build_vignettes = TRUE)` or `remotes::install_github("nf-osi/nfportalutils@some-branch", build_vignettes = TRUE)`
+ - For developers, presumably working with `devtools`:
+   - Clone the repo, checkout your desired development branch.
+   - Make sure the package repo root is working directory, then in R run `devtools::install()`.
+4. Browse some vignettes: `browseVignettes("nfportalutils")`.
 
 ## For Users
 
