@@ -18,7 +18,7 @@ manifest_generate <- function(data_type,
                               title = data_type,
                               schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                               asset_view = "syn16858331",
-                              output_format = "excel",
+                              output_format = "google_sheet",
                               use_annotations = TRUE,
                               service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate") {
 
