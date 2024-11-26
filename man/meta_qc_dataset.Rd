@@ -10,7 +10,8 @@ meta_qc_dataset(
   asset_view = "syn16787123",
   schema_url =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-  cleanup = TRUE
+  cleanup = TRUE,
+  depth = 1L
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ meta_qc_dataset(
 \item{schema_url}{Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.}
 
 \item{cleanup}{Whether to automatically remove reconstituted manifests once done. Default \code{TRUE}.}
+
+\item{depth}{How much deeper to go when there appears to be no files in the immediate scope. Defaults to 1L.}
 }
 \value{
 List of structure \code{list(result = result, notes = notes)},
