@@ -41,6 +41,7 @@ reference:
   - meta_qc_project
   - manifest_generate
   - manifest_validate
+  - manifest_validate_wrapper
   - manifest_passed
   - precheck_manifest
   - remanifest
