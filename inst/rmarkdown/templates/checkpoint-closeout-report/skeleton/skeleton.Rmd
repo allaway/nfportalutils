@@ -105,7 +105,7 @@ if(data_not_expected) cat("*Skipped revalidation check because data sharing plan
 ```
 
 
-```{r, echo=FALSE, message=FALSE, eval=!data_not_expected}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, eval=!data_not_expected}
 
 tryCatch({
   results <- meta_qc_project(project_id, schema_url = schema_url)
