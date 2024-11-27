@@ -266,15 +266,15 @@ meta_qc_dataset <- function(dataset_id,
       results <- lapply(nested_datasets, function(x) meta_qc_dataset(dataset_id = x, depth = depth - 1))
       results <- rbindlist(results, fill = TRUE)
       return(results)
+    } else {
+      return(
+        list(
+          result = NA,
+          notes = glue::glue("No data files found within {depth} level(s)"),
+          dataset_name = dataset_name,
+          dataset_id = dataset_id,
+          data_type = data_type))
     }
-  } else {
-    return(
-      list(
-        result = NA,
-        notes = glue::glue("No data files or data files nested beyond {depth} level(s)"),
-        dataset_name = dataset_name,
-        dataset_id = dataset_id,
-        data_type = data_type))
   }
 }
 
@@ -298,14 +298,12 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
 
   p <- .syn$get(project_id, downloadFile = FALSE)
   if(p$properties$concreteType != "org.sagebionetworks.repo.model.Project") {
-    message("This is not a project.")
-    return()
+    stop("This is not a project.")
   }
   datasets <- list_project_datasets(project_id, type = "folder")
   if(!length(datasets)) {
-    message("Problem with automatically detecting datasets. ",
+    stop("Problem with automatically detecting datasets. ",
             "Check project structure or drop down to `meta_qc_dataset` for dataset-by-dataset assessment.")
-    return(NA)
   }
 
   dataset_ids <- sapply(datasets, `[[`, "id")
