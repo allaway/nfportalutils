@@ -8,8 +8,8 @@
 <title>NF Portal Utilities • nfportalutils</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="NF Portal Utilities">
 <meta name="description" content="Functions to help with maintainence and administration of NF Data Portal data, metadata, and projects.">
 <meta property="og:description" content="Functions to help with maintainence and administration of NF Data Portal data, metadata, and projects.">
@@ -35,7 +35,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/annotate-nf-processed-data.html">Annotating nextflow processed data</a></li>
+<li><a class="dropdown-item" href="articles/annotate-data-intro.html">Introduction to utils for annotating data</a></li>
+    <li><a class="dropdown-item" href="articles/annotate-nf-processed-data.html">Annotating nextflow processed data</a></li>
     <li><a class="dropdown-item" href="articles/bringing-portal-data-to-other-platforms-cbioportal.html">Bringing Portal Data to Other Platforms: cBioPortal</a></li>
     <li><a class="dropdown-item" href="articles/revalidation-workflows.html">Revalidation workflows</a></li>
     <li><a class="dropdown-item" href="articles/survey-public-files.html">Surveying public files in the portal</a></li>
@@ -60,6 +61,7 @@
 <!-- badges: start -->
 <p><img src="https://github.com/nf-osi/nfportalutils/workflows/R-CMD-check/badge.svg?branch=develop" alt="R-CMD-check"><!-- badges: end --></p>
 <p>The goal of <code>nfportalutils</code> is to provide convenience functions for project and (meta)data management in the NF-OSI data portal scope. Currently, <code>develop</code> branch is default so package install and docs refer to code in this branch.</p>
+<p>The package interops with the <a href="https://github.com/Sage-Bionetworks/synapsePythonClient" class="external-link">Python synapse client</a> via reticulate. You will have to set up both (see #Installation). Outside of the tested versions, there may be some issues. The tested versions are: - Python Synapse Client == 4.3.1 - reticulate == 1.39.0</p>
 <div class="section level2">
 <h2 id="docs">Docs<a class="anchor" aria-label="anchor" href="#docs"></a>
 </h2>
@@ -68,10 +70,25 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install <code>nfportalutils</code> from here:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"nf-osi/nfportalutils"</span><span class="op">)</span></span></code></pre></div>
-<p>The package interops with the <a href="https://github.com/Sage-Bionetworks/synapsePythonClient" class="external-link">Python synapse client</a> via reticulate. You will have to download the Python synapse client first.</p>
+<p>This presumes you have already set up R with RStudio.</p>
+<ol style="list-style-type: decimal">
+<li>Install <code>reticulate</code> following guide at <a href="https://rstudio.github.io/reticulate/index.html#installation" class="external-link uri">https://rstudio.github.io/reticulate/index.html#installation</a>.</li>
+<li>Install <code>synapseclient==4.3.1</code> following <a href="https://rstudio.github.io/reticulate/articles/python_packages.html" class="external-link uri">https://rstudio.github.io/reticulate/articles/python_packages.html</a>, which will use a default environment “r-reticulate”.</li>
+<li>Lastly, install <code>nfportalutils</code>. At startup, <code>nfportalutils</code> imports <code>synapseclient</code> from the default “r-reticulate”.</li>
+</ol>
+<ul>
+<li>As regular users: <code>remotes::install_github("nf-osi/nfportalutils", build_vignettes = TRUE)</code> or <code>remotes::install_github("nf-osi/nfportalutils@some-branch", build_vignettes = TRUE)</code>
+</li>
+<li>For developers, presumably working with <code>devtools</code>:
+<ul>
+<li>Clone the repo, checkout your desired development branch.</li>
+<li>Make sure the package repo root is working directory, then in R run <code>devtools::install()</code>.</li>
+</ul>
+</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Browse some vignettes: <code>browseVignettes("nfportalutils")</code>.</li>
+</ol>
 </div>
 <div class="section level2">
 <h2 id="for-users">For Users<a class="anchor" aria-label="anchor" href="#for-users"></a>
