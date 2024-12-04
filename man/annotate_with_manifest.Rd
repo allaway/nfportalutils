@@ -12,7 +12,8 @@ annotate_with_manifest(
 )
 }
 \arguments{
-\item{manifest}{A table manifest. Needs to contain \code{entityId}.}
+\item{manifest}{A \code{data.frame} representing a manifest.
+Needs to contain \code{entityId} (if parsed from a standard manifest.csv, the df should already contain \code{entityId}).}
 
 \item{ignore_na}{Whether to ignore annotations that are \code{NA}; default TRUE.}
 

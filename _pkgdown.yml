@@ -32,6 +32,7 @@ reference:
 - subtitle: General annotations
   desc: Add and manage annotations on Synapse entities
 - contents:
+  - set_annotations
   - update_study_annotations
   - annotate_with_manifest
   - copy_annotations
