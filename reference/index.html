@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9500</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9600</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -302,13 +302,19 @@
           <code><a href="map_sample_output_rnaseq.html">map_sample_output_rnaseq()</a></code>
 
         </dt>
-        <dd>Map sample to output from nf-rnaseq</dd>
+        <dd>Map sample to output from nf-rnaseq with path</dd>
       </dl><dl><dt>
 
           <code><a href="map_sample_output_sarek.html">map_sample_output_sarek()</a></code>
 
         </dt>
         <dd>Map sample to output from nf-sarek</dd>
+      </dl><dl><dt>
+
+          <code><a href="annotate_processed.html">annotate_processed()</a></code>
+
+        </dt>
+        <dd>Annotate processed data</dd>
       </dl><dl><dt>
 
           <code><a href="annotate_aligned_reads.html">annotate_aligned_reads()</a></code>
@@ -323,16 +329,10 @@
         <dd>Annotate somatic or germline variants output</dd>
       </dl><dl><dt>
 
-          <code><a href="annotate_expression.html">annotate_expression()</a></code>
+          <code><a href="annotate_quantified_expression.html">annotate_quantified_expression()</a></code>
 
         </dt>
-        <dd>Annotate processed expression output</dd>
-      </dl><dl><dt>
-
-          <code><a href="annotate_cnv.html">annotate_cnv()</a></code>
-
-        </dt>
-        <dd>Annotate CNV outputs from CNVKit</dd>
+        <dd>Annotate quantified expression output</dd>
       </dl><dl><dt>
 
           <code><a href="annotate_reports_sarek.html">annotate_reports_sarek()</a></code>
@@ -341,10 +341,16 @@
         <dd>Annotate Sarek reports</dd>
       </dl><dl><dt>
 
-          <code><a href="annotate_with_tool_stats.html">annotate_with_tool_stats()</a></code>
+          <code><a href="annotate_with_samtools_stats.html">annotate_with_samtools_stats()</a></code>
 
         </dt>
-        <dd>Make annotations from workflow tool stats</dd>
+        <dd>Make annotations from samtools stats</dd>
+      </dl><dl><dt>
+
+          <code><a href="processed_meta.html">processed_meta()</a></code>
+
+        </dt>
+        <dd>Metadata for processed products</dd>
       </dl><dl><dt>
 
           <code><a href="nf_workflow_version.html">nf_workflow_version()</a></code>
@@ -376,35 +382,6 @@
         <dd>Create new dataset with given items</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="specialized-dataset-creation">Specialized dataset creation<a class="anchor" aria-label="anchor" href="#specialized-dataset-creation"></a></h3>
-      <div class="section-desc"><p>Create specialized datasets for nextflow processed data, i.e. with some custom construction queries and title templating.</p></div>
-
-
-    </div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="nf_sarek_datasets.html">nf_sarek_datasets()</a></code>
-
-        </dt>
-        <dd>Create datasets for Sarek-called somatic or germline variants results</dd>
-      </dl><dl><dt>
-
-          <code><a href="nf_star_salmon_datasets.html">nf_star_salmon_datasets()</a></code>
-
-        </dt>
-        <dd>Create dataset for STAR-Salmon expression quantification results</dd>
-      </dl><dl><dt>
-
-          <code><a href="nf_cnv_dataset.html">nf_cnv_dataset()</a></code>
-
-        </dt>
-        <dd>Create dataset for CNVKit results</dd>
-      </dl></div><div class="section level2">
-
       <h3 id="working-with-dataset-collections-to-manage-datasets-after-creation">Working with dataset collections to manage datasets after creation<a class="anchor" aria-label="anchor" href="#working-with-dataset-collections-to-manage-datasets-after-creation"></a></h3>
 
 
@@ -431,7 +408,7 @@
           <code><a href="update_items.html">update_items()</a></code>
 
         </dt>
-        <dd>Apply updates to current collection of items</dd>
+        <dd>INTERNAL - apply updates to a collection of items</dd>
       </dl></div><div class="section level2">
       <h2 id="data-model-utils">Data Model Utils<a class="anchor" aria-label="anchor" href="#data-model-utils"></a></h2>
 
@@ -555,6 +532,12 @@
 
         </dt>
         <dd>Find a standard nextflow workflow output asset</dd>
+      </dl><dl><dt>
+
+          <code><a href="find_parent.html">find_parent()</a></code>
+
+        </dt>
+        <dd>Find parent</dd>
       </dl></div><div class="section level2">
       <h2 id="provenance-utils">Provenance Utils<a class="anchor" aria-label="anchor" href="#provenance-utils"></a></h2>
 
@@ -825,6 +808,12 @@
 
         </dt>
         <dd>Create copy of entity</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_path.html">get_path()</a></code>
+
+        </dt>
+        <dd>Get path for a Synapse id</dd>
       </dl><dl><dt>
 
           <code><a href="convert_to_stringlist.html">convert_to_stringlist()</a></code>

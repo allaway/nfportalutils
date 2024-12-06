@@ -29,11 +29,12 @@
 <url><loc>/reference/adjust_view.html</loc></url>
 <url><loc>/reference/annotate_aligned_reads.html</loc></url>
 <url><loc>/reference/annotate_called_variants.html</loc></url>
-<url><loc>/reference/annotate_cnv.html</loc></url>
-<url><loc>/reference/annotate_expression.html</loc></url>
+<url><loc>/reference/annotate_processed.html</loc></url>
+<url><loc>/reference/annotate_quantified_expression.html</loc></url>
 <url><loc>/reference/annotate_reports_sarek.html</loc></url>
 <url><loc>/reference/annotate_with_manifest.html</loc></url>
-<url><loc>/reference/annotate_with_tool_stats.html</loc></url>
+<url><loc>/reference/annotate_with_samtools_stats.html</loc></url>
+<url><loc>/reference/annotation_rule.html</loc></url>
 <url><loc>/reference/append_kv.html</loc></url>
 <url><loc>/reference/as_coll_items.html</loc></url>
 <url><loc>/reference/as_mmd_link.html</loc></url>
@@ -82,6 +83,7 @@
 <url><loc>/reference/find_data_root.html</loc></url>
 <url><loc>/reference/find_in.html</loc></url>
 <url><loc>/reference/find_nf_asset.html</loc></url>
+<url><loc>/reference/find_parent.html</loc></url>
 <url><loc>/reference/format_gene_expression_data.html</loc></url>
 <url><loc>/reference/from_pubmed.html</loc></url>
 <url><loc>/reference/gather_annotations.html</loc></url>
@@ -89,6 +91,7 @@
 <url><loc>/reference/get_cbio_filename.html</loc></url>
 <url><loc>/reference/get_dependency_from_json_schema.html</loc></url>
 <url><loc>/reference/get_doi_meta.html</loc></url>
+<url><loc>/reference/get_path.html</loc></url>
 <url><loc>/reference/get_project_wiki.html</loc></url>
 <url><loc>/reference/get_valid_values_from_json_schema.html</loc></url>
 <url><loc>/reference/grant_specific_file_access.html</loc></url>
@@ -134,13 +137,12 @@
 <url><loc>/reference/new_project.html</loc></url>
 <url><loc>/reference/new_project_strict.html</loc></url>
 <url><loc>/reference/new_view.html</loc></url>
-<url><loc>/reference/nf_cnv_dataset.html</loc></url>
-<url><loc>/reference/nf_sarek_datasets.html</loc></url>
-<url><loc>/reference/nf_star_salmon_datasets.html</loc></url>
 <url><loc>/reference/nf_workflow_version.html</loc></url>
+<url><loc>/reference/path_extract.html</loc></url>
 <url><loc>/reference/pipe.html</loc></url>
 <url><loc>/reference/ppp_mmd_template.html</loc></url>
 <url><loc>/reference/precheck_manifest.html</loc></url>
+<url><loc>/reference/processed_meta.html</loc></url>
 <url><loc>/reference/processing_flowchart.html</loc></url>
 <url><loc>/reference/register_study.html</loc></url>
 <url><loc>/reference/register_study_files.html</loc></url>
