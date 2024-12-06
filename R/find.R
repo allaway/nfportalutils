@@ -1,5 +1,19 @@
 # Utils to help overcome nested folders
 
+#' Get path for a Synapse id
+#'
+#' Small helper fun to get path for given Synapse entity.
+#' @param id Synapse id.
+#' @param path Path builder value.
+#' @export
+get_path <- function(id, path = NULL) {
+  entity <- .syn$get(id)
+  path <- c(entity$properties$name, path)
+  if(entity$properties$concreteType == "org.sagebionetworks.repo.model.Project") return(paste0(path, collapse = "/"))
+  get_path(id = entity$properties$parentId, path)
+}
+
+
 #' Find in path
 #'
 #' Get the Synapse id of an entity nested several folder layers deep without
@@ -41,10 +55,18 @@ find_child <- function(child_name, parent) {
   child_id
 }
 
+#' Find parent
+#'
+#' @param id Synapse id
+#' @export
+find_parent <- function(id) {
+  .syn$get(syn_out, downloadFile = F)$properties$parentId
+}
+
 
 #' Find children of type
 #'
-#' Small utility like`find_child` but retrieves files by type rather than by specific name.
+#' Small utility like `find_child` but retrieves files by type rather than by specific name.
 #' Returns a vector of ids, with entity names set as names.
 #'
 #' @inheritParams find_child
@@ -87,23 +109,23 @@ find_data_root <- function(project_id) {
 #'
 #' @param syn_out Id of top-level folder that corresponds to `publishDir` in a nextflow workflow.
 #' @param asset Name of asset to find.
-#' @param workflow Specify workflow, "rna-seq" or "sarek"; defaults to "rna-seq"
+#' @param workflow Specify workflow, "nf-rnaseq" or "nf-sarek"; defaults to "nf-rnaseq".
 #' @returns Id of samplesheet.
 #' @export
 find_nf_asset <- function(syn_out,
                           asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats"),
-                          workflow = "rna-seq") {
+                          workflow = "nf-rnaseq") {
 
   asset <- match.arg(asset)
-  # Assets and paths can differ slightly depending on workflow, except for `software_versions.yml`, get workflow first
-  if(workflow == "rna-seq") {
+  # Assets and paths can differ slightly depending on workflow except for `software_versions.yml`
+  if(workflow ==  "nf-rnaseq") {
     path <- switch(asset,
                    software_versions = "pipeline_info/software_versions.yml",
                    multiqc_report = "multiqc/star_salmon/multiqc_report.html",
                    samplesheet = "pipeline_info/samplesheet.valid.csv",
                    samtools_stats = "multiqc/star_salmon/multiqc_data/multiqc_samtools_stats.txt"
     )
-  } else if(workflow == "sarek") {
+  } else if(workflow == "nf-sarek") {
     path <- switch(asset,
                    software_versions = "pipeline_info/software_versions.yml",
                    multiqc_report = "multiqc/multiqc_report.html",
@@ -113,9 +135,7 @@ find_nf_asset <- function(syn_out,
     stop("Unrecognized workflow.")
   }
 
-  id <- find_in(syn_out, path)
-  if(is.null(id)) stop("File not found. Is this the right output directory/path?")
-  id
+  find_in(syn_out, path) # NULL if not found
 }
 
 

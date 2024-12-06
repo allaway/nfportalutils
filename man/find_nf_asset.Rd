@@ -7,7 +7,7 @@
 find_nf_asset(
   syn_out,
   asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats"),
-  workflow = "rna-seq"
+  workflow = "nf-rnaseq"
 )
 }
 \arguments{
@@ -15,7 +15,7 @@ find_nf_asset(
 
 \item{asset}{Name of asset to find.}
 
-\item{workflow}{Specify workflow, "rna-seq" or "sarek"; defaults to "rna-seq"}
+\item{workflow}{Specify workflow, "nf-rnaseq" or "nf-sarek"; defaults to "nf-rnaseq".}
 }
 \value{
 Id of samplesheet.

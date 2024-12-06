@@ -53,12 +53,13 @@ reference:
   - map_sample_io
   - map_sample_output_rnaseq
   - map_sample_output_sarek
+  - annotate_processed
   - annotate_aligned_reads
   - annotate_called_variants
-  - annotate_expression
-  - annotate_cnv
+  - annotate_quantified_expression
   - annotate_reports_sarek
-  - annotate_with_tool_stats
+  - annotate_with_samtools_stats
+  - processed_meta
   - nf_workflow_version
 
 - title: Dataset Creation and Management
@@ -66,12 +67,6 @@ reference:
   desc: Create datasets in general
 - contents:
   - new_dataset
-- subtitle: Specialized dataset creation
-  desc: Create specialized datasets for nextflow processed data, i.e. with some custom construction queries and title templating.
-- contents:
-  - nf_sarek_datasets
-  - nf_star_salmon_datasets
-  - nf_cnv_dataset
 - subtitle: Working with dataset collections to manage datasets after creation
 - contents:
   - add_to_collection
@@ -157,6 +152,7 @@ reference:
   - latest_version
   - walk
   - copy
+  - get_path
   - convert_to_stringlist
   - bare_syn_id
   - bad_url

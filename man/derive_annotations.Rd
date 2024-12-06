@@ -4,21 +4,32 @@
 \alias{derive_annotations}
 \title{Derive annotations for processed output data}
 \usage{
-derive_annotations(sample_io, template, schema, format, verbose = TRUE)
+derive_annotations(
+  sample_io,
+  template = NULL,
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  verbose = TRUE
+)
 }
 \arguments{
-\item{format}{File format of the processed data, e.g. "vcf".}
+\item{sample_io}{Mapping of input and output files from a workflow.}
+
+\item{template}{Which template to use when deriving annotations.
+This controls which attributes are relevant for transfer/keep.
+If not given, will use whatever is set for the attribute "template".}
+
+\item{schema}{Reference to data model source.}
+
+\item{verbose}{Whether to output detailed messages.}
 }
 \description{
 A processed or derived file can inherit annotations from the input file(s).
 Currently, this generously facilitates inheritance of many properties except ones that
 "obviously" shouldn't be inherited, such as "fileFormat" or "comments".
-These rules are hard-coded and might need to be expanded as the data model changes,
-and the manifest generated should still be reviewed.
+These rules are hard-coded and might need to be expanded as the data model changes.
 }
 \details{
 If multiple inputs given, this will inherit annotations from the FIRST input.
-Files that pass through this naturally have \code{dataSubtype} automatically set to "processed" and \code{fileFormat} set
-to the actual new file format. In the future, \code{template} itself may define default \code{format} so we don't need to specify explicitly.
 }
 \keyword{internal}

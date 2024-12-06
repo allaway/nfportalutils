@@ -12,6 +12,6 @@ find_child_type(parent, child_type = list("file"))
 \item{child_type}{Type(s) as a list, even for only one type. Defaults to "file".}
 }
 \description{
-Small utility like\code{find_child} but retrieves files by type rather than by specific name.
+Small utility like \code{find_child} but retrieves files by type rather than by specific name.
 Returns a vector of ids, with entity names set as names.
 }
