@@ -44,6 +44,38 @@ annotation_rule <- function(outputFrom, which = c("format_as", "annotate_as", "t
 
 # ------------------------------------------------------------------------------#
 
+#' Extract Synapse id from URI
+#'
+#' Given some vector `x` of URIs/file paths,
+#' will try different methods to extract what's likely the needed Synapse id,
+#' then sanity checks of results.
+#' @keywords internal
+#' @seealso [bare_syn_id()]
+extract_syn_id_from_ss <- function(x) {
+
+  # Helper validation / sanity check
+  is_valid_ids <- function(ids) {
+    all(is_valid_syn_id(ids)) && !anyDuplicated(ids)
+  }
+
+  # List of extraction methods
+  extractors <- list(
+    bare_syn_id,
+    function(x) sub(".*\\b(syn[0-9]+)\\b.*", "\\1", x, perl = TRUE)
+  )
+
+  # Attempt extraction and validation with each method
+  for (extract in extractors) {
+    result <- extract(x)
+    if (is_valid_ids(result)) {
+      return(result)
+    }
+  }
+
+  # If all fails...
+  stop("Failed parsing consistent input file IDs in samplesheet.")
+}
+
 #' Parse nextflow samplesheet for sample inputs
 #'
 #' Samplesheets are used in rnaseq pipelines, defined here: https://nf-co.re/rnaseq/usage#full-samplesheet.
@@ -68,8 +100,8 @@ map_sample_input_ss <- function(samplesheet,
     message("In this samplesheet version, looks like we have 'fastq' -- reading as 'fastq_1'")
   }
 
-  ss[, input_syn_1 := bare_syn_id(fastq_1)] # Get synId from URI
-  ss[, input_syn_2 := bare_syn_id(fastq_2)]
+  ss[, input_syn_1 := extract_syn_id_from_ss(fastq_1)] # Get synId from URI
+  ss[, input_syn_2 := extract_syn_id_from_ss(fastq_2)]
   ss[, sample := parse_fun(sample)] # Parse sample from "sample" col
 
   # File inputs for each sample specimen
@@ -130,15 +162,14 @@ map_sample_output_rnaseq <- function(syn_out,
       if(.output == "SAMtools") {
         result[, sample := gsub("\\.markdup.*", "", output_name)]
       }
+
+      result[, workflow := "STAR and Salmon"]
+      results[[.output]] <- result
+      # annotation within an annotation workflow... enables automation in later steps
+      setattr(results[[.output]], "outputFrom", .output)
+      setattr(results[[.output]], "workflow", "nf-rnaseq")
+      setattr(results[[.output]], "outputDir", syn_out)
     }
-
-    result[, workflow := "STAR and Salmon"]
-    results[[.output]] <- result
-
-    # annotation within an annotation workflow... enables automation in later steps
-    setattr(results[[.output]], "outputFrom", .output)
-    setattr(results[[.output]], "workflow", "nf-rnaseq")
-    setattr(results[[.output]], "outputDir", syn_out)
   }
 
   return(results)

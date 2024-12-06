@@ -64,7 +64,7 @@ bare_syn_id <- function(uri) {
 #' @param id Id string.
 #' @keywords internal
 is_valid_syn_id <- function(id) {
-  result <- grepl("^syn[0-9]{7,12}$", id)
+  result <- grepl("^syn[0-9]{4,}$", id)
   result
 }
 
