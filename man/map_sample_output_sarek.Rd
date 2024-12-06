@@ -4,24 +4,39 @@
 \alias{map_sample_output_sarek}
 \title{Map sample to output from nf-sarek}
 \usage{
-map_sample_output_sarek(syn_out, sample_level = 2)
+map_sample_output_sarek(
+  syn_out,
+  fileview,
+  output = c("CNVkit", "DeepVariant", "Strelka2", "Mutect2", "FreeBayes")
+)
 }
 \arguments{
-\item{syn_out}{Syn id of syn output destination with files of interest.}
+\item{syn_out}{Syn id of variant calling output folder.}
 
-\item{sample_level}{If caller is organized by sample, use 2 (default), if samples organized by caller, use 3. See details.}
+\item{fileview}{An existing fileview to use (usually the project's local fileview)
+that scopes outputs and has "default" columns (\code{id}, \code{name}, \code{type}, \code{parentId}, \code{path}, ...). See details.}
+
+\item{output}{Which output to select and annotate.
+Defaults to checking the presence of possible prioritized outputs
+("CNVkit", "DeepVariant", "Strelka2", "Mutect2", and "FreeBayes"),
+though typically only a subset makes sense and can be explicitly specified, which also speeds up results.}
 }
 \value{
-A \code{data.table} with cols \code{caller} \code{caller_path} \code{caller_syn} \code{output_name} \code{output_id} \code{sample} \code{workflow}
+A \code{data.table} with cols \code{caller} \code{path} \code{output_name} \code{output_id} \code{sample} \code{workflow}.
+An attribute \code{workflow=nf-sarek} will be set on the returned list,
+and elements will have attribute \code{outputFrom} set, e.g. \code{outputFrom=CNVkit}.
 }
 \description{
-See https://nf-co.re/sarek. Most processed outputs are nested by sample and variant callers, i.e.
-\verb{*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>}. Other times the data is organized as
-\verb{*VariantCalling/<CALLER>/<TUMOR_vs_NORMAL>}.
-This walks through the output destination (URI of \verb{*VariantCalling})
-with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
+See https://nf-co.re/sarek. Similar to \code{\link{map_sample_output_rnaseq}} but for Sarek outputs.
+Processed outputs have been seen to have variable organization, nested first by sample or by caller as
+\verb{VariantCalling/<SAMPLE>/<CALLER>} or as
+\verb{VariantCalling/<CALLER>/<SAMPLE>}.
+The hierarchy/context needed for annotation can be obtained with a fileview and given the
+necessary starting point \code{syn_out}, which is the id of the relevant output folder
+(called \code{VariantCalling} or \code{variant_calling} usually).
 }
 \details{
-Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant.
-If this is run \emph{after} the MAF creation step, this will return file indexes with those .maf files.
+Note: Depending on when \code{map_sample_output_sarek} is run on the output directory,
+there may be just \code{vcf} or both \code{vcf} and \code{maf} present. \strong{\code{maf} are ignored since
+technically it is not an output of sarek but from further processing with nf-vcf2maf.}
 }

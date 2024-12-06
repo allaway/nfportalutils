@@ -1,5 +1,19 @@
 # Utils to help overcome nested folders
 
+#' Get path for a Synapse id
+#'
+#' Small helper fun to get path for given Synapse entity.
+#' @param id Synapse id.
+#' @param path Path builder value.
+#' @export
+get_path <- function(id, path = NULL) {
+  entity <- .syn$get(id)
+  path <- c(entity$properties$name, path)
+  if(entity$properties$concreteType == "org.sagebionetworks.repo.model.Project") return(paste0(path, collapse = "/"))
+  get_path(id = entity$properties$parentId, path)
+}
+
+
 #' Find in path
 #'
 #' Get the Synapse id of an entity nested several folder layers deep without
@@ -44,7 +58,7 @@ find_child <- function(child_name, parent) {
 
 #' Find children of type
 #'
-#' Small utility like`find_child` but retrieves files by type rather than by specific name.
+#' Small utility like `find_child` but retrieves files by type rather than by specific name.
 #' Returns a vector of ids, with entity names set as names.
 #'
 #' @inheritParams find_child

@@ -2,17 +2,17 @@
 % Please edit documentation in R/datasets.R
 \name{update_items}
 \alias{update_items}
-\title{Apply updates to current collection of items}
+\title{INTERNAL - apply updates to a collection of items}
 \usage{
-update_items(current_coll, update_coll)
+update_items(current, update)
 }
 \arguments{
-\item{current_items}{List of lists representing a collection of items.}
+\item{current}{List of lists representing a collection of items.}
 
-\item{update_items}{Collection of items to apply as updates to \code{current_items}.}
+\item{update}{Collection of items to apply as updates to \code{current_items}.}
 }
 \description{
-This is essentially an internal transaction helper for trying to apply a changeset to a collection,
+An internal transaction helper for trying to apply a changeset to a collection,
 used in several higher-level collection utils.
 Given the changeset that can represent updates of both types "replace" or "add",
 this applies an update join keyed on \code{entityId} for the replace and

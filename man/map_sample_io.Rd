@@ -4,21 +4,14 @@
 \alias{map_sample_io}
 \title{Map sample input-output}
 \usage{
-map_sample_io(
-  workflow = c("nf-rnaseq", "nf-sarek"),
-  samplesheet,
-  syn_out,
-  sample_level = 2
-)
+map_sample_io(input, output, workflow)
 }
 \arguments{
-\item{workflow}{Workflow.}
+\item{input}{Data from \code{map_sample_input_ss}.}
 
-\item{samplesheet}{A local file or syn id of samplesheet.}
+\item{output}{Data from \verb{map_sample_output_*}.}
 
-\item{syn_out}{Syn id of syn output destination with files of interest.}
-
-\item{sample_level}{If caller is organized by sample, use 2 (default), if samples organized by caller, use 3. See details.}
+\item{workflow}{Either "nf-rnaseq" or "nf-sarek".}
 }
 \value{
 A table with \code{sample} \code{level} \code{output_id} \code{output_name} \code{input_id}.

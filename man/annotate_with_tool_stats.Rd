@@ -5,22 +5,22 @@
 \title{Make annotations from workflow tool stats}
 \usage{
 annotate_with_tool_stats(
+  meta,
   samtools_stats_file = NULL,
-  picard_stats_file = NULL,
-  sample_io = NULL
+  picard_stats_file = NULL
 )
 }
 \arguments{
+\item{meta}{Data to which tool stats will be added as additional meta.}
+
 \item{samtools_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
 
 \item{picard_stats_file}{Path to file/syn id of file with picard stats produced by the workflow.}
-
-\item{sample_io}{Sample input and output mapping, used to assign stats to appropriate outputs (bam)}
 }
 \description{
 Extracts a subset of \href{http://www.htslib.org/doc/samtools-stats.html}{samtools stats}
 and \href{https://broadinstitute.github.io/picard/picard-metric-definitions.html}{picard stats}
 from workflow metafiles to surface as annotations. Note: picard stats only for WGS/WES/targeted sequencing.
 Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
-\href{https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads}{Aligned Reads}
+\href{https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads}{AlignedReads}
 }

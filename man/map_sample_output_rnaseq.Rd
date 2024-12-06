@@ -2,22 +2,34 @@
 % Please edit documentation in R/nextflow_annotation_utils.R
 \name{map_sample_output_rnaseq}
 \alias{map_sample_output_rnaseq}
-\title{Map sample to output from nf-rnaseq}
+\title{Map sample to output from nf-rnaseq with path}
 \usage{
-map_sample_output_rnaseq(syn_out)
+map_sample_output_rnaseq(
+  syn_out,
+  fileview,
+  output = c("STAR and Salmon", "featureCounts", "SAMtools")
+)
 }
 \arguments{
-\item{syn_out}{Syn id of syn output destination with files of interest.}
+\item{syn_out}{Syn id of variant calling output folder.}
+
+\item{fileview}{An existing fileview to use (usually the project's local fileview)
+that scopes outputs and has "default" columns (\code{id}, \code{name}, \code{type}, \code{parentId}, \code{path}, ...). See details.}
+
+\item{output}{Which output to select and annotate. Defaults to all output types unless more limited election.
+\itemize{
+\item "STAR and Salmon" selects .sf files -- this is typically considered the main output.
+\item "featureCounts" selects the relevant .txt files.
+\item "SAMtools" selects the .bam/.bai indexed and sorted by SAMtools.
+}}
 }
 \value{
-A \code{data.table} with cols \code{output_name} \code{output_id} \code{sample} \code{workflow}
+A list of \code{data.table}s with columns \code{output_name} \code{output_id} \code{sample} \code{workflow} for each output type.
+An attribute \code{workflow=nf-rnaseq} will be set on the returned list,
+and elements will have attribute \code{outputFrom} set, e.g. \code{outputFrom=SAMtools}.
 }
 \description{
-See https://nf-co.re/rnaseq. Given location where workflow has deposited the outputs,
-map relevant processed files based on extensions and link these files to source samples.
-So for \verb{results/star_salmon/<sample>/<file>}, the URI to pass in is the \code{star_salmon} folder.
-Warning: Reliance on certain file structure and naming convention can make this somewhat brittle!
-}
-\details{
-See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.
+See https://nf-co.re/rnaseq/docs/output/#pipeline-overview.
+The workflow generates several types of outputs that can become ("level 2" or "level 3") dataset products.
+(note: some outputs may not be available depending on how workflow was run and indexed back).
 }

@@ -4,47 +4,20 @@
 \alias{annotate_called_variants}
 \title{Annotate somatic or germline variants output}
 \usage{
-annotate_called_variants(
-  sample_io,
-  workflow_ref,
-  format = c("auto", "vcf", "maf"),
-  template = "bts:ProcessedVariantCallsTemplate",
-  schema =
-    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-  data_type = c("auto", "SomaticVariants", "GermlineVariants",
-    "AnnotatedSomaticVariants", "AnnotatedGermlineVariants"),
-  verbose = TRUE,
-  dry_run = TRUE
-)
+annotate_called_variants(metadata, workflow_link, verbose = TRUE)
 }
 \arguments{
-\item{sample_io}{Table mapping input to outputs, which reference output \code{.vcf.gz} or \code{maf} files.}
+\item{metadata}{Metadata table to build upon.}
 
-\item{workflow_ref}{Character vector with names for workflow and values as version-specific links.}
-
-\item{format}{Variant format, "auto" to handle any "vcf" or "maf" files present automatically, or specify one explicitly. See details.}
-
-\item{template}{(Optional) URI of template in data model to use, prefixed if needed.
-Can specify different model/version, but in some cases may not work well.}
-
-\item{schema}{Path (URL or local) to file from which schema will be read, or schema as list object.}
-
-\item{data_type}{Variant type, use "auto" to infer from naming scheme and current NF processing SOP, or specify more explicitly.}
+\item{workflow_link}{Workflow link to most specific part of workflow generating these data.}
 
 \item{verbose}{Give verbose reports for what's happening.}
-
-\item{dry_run}{Whether to apply annotations.}
 }
 \description{
-Currently, \code{vcf} are output first and \code{maf}s appear after a subsequent workflow run,
-so depending on when \code{map_sample_output_sarek} is run to create a \code{sample_io} file,
-there will be just \code{vcf} files or both.
-(In the future, the workflows will likely be joined so both are deposited at the same run.)
-One can specify to only annotate either the "vcf" or "maf" files and create a manifest
-for just those files, or use "auto" to detect the file types present in \code{sample_io}.
+Given a manifest, annotate data as variant data (\code{vcf} or \code{maf}).
 }
 \details{
-\code{maf} files use the same template but with different default values, such as a subclass term for \code{dataType}.
+\code{maf} files use the same template but with different default values.
 If in the future \code{maf}s require a significantly different template,
 then this should be factored out into a separate annotation function.
 }
