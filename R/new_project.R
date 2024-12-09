@@ -96,13 +96,7 @@ new_project <- function(name,
 
   # Bind JSON schema so children folders have NF's dataset schemas, see
   # https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/org.synapse.nf-superdataset
-  # and https://help.synapse.org/docs/JSON-Schemas.3107291536.html
-  bind_schema_request <- jsonlite::toJSON(list(entityId = data_folder_id,
-                                               `schema$id` = "org.synapse.nf-superdataset",
-                                               enableDerivedAnnotations = TRUE),
-                                          auto_unbox = TRUE)
-  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{data_folder_id}/schema/binding")
-  try(.syn$restPUT(binding_uri, bind_schema_request))
+  bind_schema(data_folder_id, schema_id = "org.synapse.nf-superdataset", derived_annotations = TRUE)
 
   # Create data-specific folders in "Raw Data"
   if(length(datasets)) {
@@ -111,8 +105,11 @@ new_project <- function(name,
 
   # Create homes for non-data resources alongside "Raw Data"
   if(length(other_resources)) {
-    make_folder(parent = project, folders = other_resources)
+    other_resources_ids <- make_folder(parent = project, folders = other_resources)
   }
+
+  # Aside from dataset schema, currently only have protocols schema
+
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
   fv <- add_default_fileview(project)
@@ -296,3 +293,20 @@ is_valid_team <- function(id) {
   if(length(status)) return(TRUE) else return(FALSE)
 }
 
+#' Wrapper for JSON schema binding
+#'
+#' See https://help.synapse.org/docs/JSON-Schemas.3107291536.html
+#'
+#' @param id Id of entity to which schema will be bound
+#' @param schema_id Schema id as registered on Synapse.
+#' @param derived_annotations Whether to enabled derived annotations.
+#' Default `FALSE` as this is the API default.
+bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
+
+  bind_schema_request <- jsonlite::toJSON(list(entityId = id,
+                                               `schema$id` = schema_id,
+                                               enableDerivedAnnotations = derived_annotations),
+                                          auto_unbox = TRUE)
+  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/binding")
+  try(.syn$restPUT(binding_uri, bind_schema_request))
+}
