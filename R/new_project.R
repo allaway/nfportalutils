@@ -153,6 +153,7 @@ add_default_fileview <- function(project) {
   view <- synapseclient$EntityViewSchema(
     name = "Project Files and Metadata",
     columns=list(
+      synapseclient$Column(name="contentType", columnType="STRING", maximumSize="30"),
       synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
       synapseclient$Column(name="assay", columnType="STRING", maximumSize="57"),
       synapseclient$Column(name="dataType", columnType="STRING", maximumSize="30"),
@@ -174,7 +175,7 @@ add_default_fileview <- function(project) {
     ),
     parent = project,
     scopes = project,
-    includeEntityTypes = list(synapseclient$EntityViewType$FILE),
+    includeEntityTypes = list(synapseclient$EntityViewType$FILE, synapseclient$EntityViewType$FOLDER),
     add_default_columns = TRUE)
   view <- .syn$store(view)
   invisible(view)
