@@ -153,30 +153,31 @@ add_default_fileview <- function(project) {
   view <- synapseclient$EntityViewSchema(
     name = "Project Files and Metadata",
     columns=list(
-      synapseclient$Column(name="contentType", columnType="STRING", maximumSize="30"),
+      synapseclient$Column(name="contentType", columnType="STRING", maximumSize="20"),
       synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
-      synapseclient$Column(name="assay", columnType="STRING", maximumSize="57"),
+      synapseclient$Column(name="assay", columnType="STRING", maximumSize="100"),
       synapseclient$Column(name="dataType", columnType="STRING", maximumSize="30"),
       synapseclient$Column(name="dataSubtype", columnType="STRING", maximumSize="13"),
       synapseclient$Column(name="fileFormat", columnType="STRING", maximumSize="13"),
       synapseclient$Column(name="diagnosis", columnType="STRING", maximumSize="39"),
       synapseclient$Column(name="tumorType", columnType="STRING", maximumSize="90"),
-      synapseclient$Column(name="individualID", columnType="STRING", maximumSize="213"),
-      synapseclient$Column(name="specimenID", columnType="STRING", maximumSize="300"),
+      synapseclient$Column(name="individualID", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
+      synapseclient$Column(name="specimenID", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
       synapseclient$Column(name="nf1Genotype", columnType="STRING", maximumSize="8"),
-      synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="7"),
+      synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="20"),
       synapseclient$Column(name="species", columnType="STRING", maximumSize="100"),
-      synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="42"),
-      synapseclient$Column(name="cellType", columnType="STRING", maximumSize="300"),
-      synapseclient$Column(name="sex", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="100"),
+      synapseclient$Column(name="cellType", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
+      synapseclient$Column(name="sex", columnType="STRING", maximumSize="30"),
       synapseclient$Column(name="age", columnType="STRING", maximumSize="50"),
-      synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="58"),
+      synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="100"),
       synapseclient$Column(name="progressReportNumber", columnType="INTEGER")
     ),
     parent = project,
     scopes = project,
     includeEntityTypes = list(synapseclient$EntityViewType$FILE, synapseclient$EntityViewType$FOLDER),
-    add_default_columns = TRUE)
+    add_default_columns = TRUE,
+    addAnnotationColumns = FALSE)
   view <- .syn$store(view)
   invisible(view)
 }
