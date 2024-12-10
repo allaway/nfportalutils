@@ -306,6 +306,7 @@ is_valid_team <- function(id) {
 #' @param schema_id Schema id as registered on Synapse.
 #' @param derived_annotations Whether to enabled derived annotations.
 #' Default `FALSE` as this is the API default.
+#' @export
 bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
 
   bind_schema_request <- jsonlite::toJSON(list(entityId = id,
