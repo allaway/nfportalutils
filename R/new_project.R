@@ -96,7 +96,7 @@ new_project <- function(name,
 
   # Bind JSON schema so children folders have NF's dataset schemas, see
   # https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/org.synapse.nf-superdataset
-  bind_schema(data_folder_id, schema_id = "org.synapse.nf-superdataset", derived_annotations = TRUE)
+  bind_schema(id = data_folder_id, schema_id = "org.synapse.nf-superdataset", derived_annotations = TRUE)
 
   # Create data-specific folders in "Raw Data"
   if(length(datasets)) {
@@ -105,7 +105,10 @@ new_project <- function(name,
 
   # Create homes for non-data resources alongside "Raw Data"
   if(length(other_resources)) {
-    other_resources_ids <- make_folder(parent = project, folders = other_resources)
+    other_resource_folders <- make_folder(parent = project, folders = other_resources)
+    if ("Protocols" %in% names(other_resource_folders)) {
+      bind_schema(id = other_resource_folders$Protocols$properties$id, schema_id = "org.synapse.nf-protocol", derived_annotations = FALSE)
+    }
   }
 
   # Aside from dataset schema, currently only have protocols schema
