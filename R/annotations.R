@@ -53,11 +53,14 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
 #' @param select Vector of properties to selectively copy if present on the entity.
 #' If not specified, will copy over everything, which may not be desirable.
 #' @param update Whether to immediately update or return annotation objects only.
+#' @param as_list Only used when `update=FALSE`; for backwards-compatibility or when
+#' downstream usage of `copy_annotations` expects an R list, return as an R list.
 #' @export
 copy_annotations <- function(entity_from,
                              entity_to,
                              select = NULL,
-                             update = FALSE) {
+                             update = FALSE,
+                             as_list = TRUE) {
 
   .check_login()
 
@@ -74,7 +77,29 @@ copy_annotations <- function(entity_from,
     for(k in select) {
       to_annotations[k] <- from_annotations[k]
     }
-    if(update) .syn$set_annotations(to_annotations) else return(to_annotations)
+    if(update) {
+      .syn$set_annotations(to_annotations)
+    } else if (as_list) {
+      .dict_to_list(to_annotations)
+    } else {
+      to_annotations
+    }
   }
 }
 
+
+#' Convert a flat Python Dict to R list
+#'
+#' An internal function used to convert Annotations objects returned by `get_annotations`.
+#'
+#' @param dict A flat Python Dict object.
+.dict_to_list <- function(dict) {
+  if (is.null(names(dict))) {
+    stop("Input must be a named list representing a flat Python dictionary.")
+  }
+  l <- list()
+  for(k in names(dict)) {
+    l[k] <- dict[k]
+  }
+  l
+}

@@ -504,7 +504,6 @@ annotate_with_samtools_stats <- function(meta,
 #' Wrapper for all steps to get manifest for processed product
 #'
 #' @inheritParams map_sample_io
-#' @param
 #' @param workflow_link Workflow link.
 #' @export
 #' @return List `manifest` with manifests for each processed dataset,
