@@ -80,9 +80,9 @@ copy_annotations <- function(entity_from,
     if(update) {
       .syn$set_annotations(to_annotations)
     } else if (as_list) {
-      .dict_to_list(to_annotations)
+      return(.dict_to_list(to_annotations))
     } else {
-      to_annotations
+      return(to_annotations)
     }
   }
 }
@@ -99,7 +99,7 @@ copy_annotations <- function(entity_from,
   }
   l <- list()
   for(k in names(dict)) {
-    l[k] <- dict[k]
+    l[[k]] <- dict[k]
   }
   l
 }
