@@ -164,6 +164,7 @@ reference:
   description: Mostly meant to be internal or experimental stuff
 - contents:
   - .delim_string_to_vector
+  - .dict_to_list
   - .replace_string_column_with_stringlist_column
   - .store_rows
   - missing_annotation_email
