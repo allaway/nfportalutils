@@ -157,9 +157,8 @@ manifest_passed <- function(result) {
 #' @export
 infer_data_type <- function(dataset_id) {
 
-  children <- .syn$getChildren(dataset_id)
-  children <- reticulate::iterate(children)
-  if(!length(children)) return(list(result = NA, notes = "Empty dataset folder"))
+  children <- find_child_type(parent = dataset_id)
+  if(!length(children)) return(list(result = NA, data_type = NA, notes = "Empty dataset folder"))
   children <- first(children, 3)
   data_type <- c()
   for (entity in children) {
@@ -167,9 +166,28 @@ infer_data_type <- function(dataset_id) {
     data_type <- append(data_type, e$Component)
   }
   data_type <- unique(data_type)
-  if(is.null(data_type)) return(list(result = NA, notes = "Metadata insufficient to infer data type."))
-  if(length(data_type) > 1) return(list(result = NA, notes = "Conflicting data types observed."))
-  return(list(result = data_type, notes = ""))
+  if(is.null(data_type)) return(list(result = NA, data_type = NA, notes = "Metadata insufficient to infer data type."))
+  if(length(data_type) > 1) return(list(result = NA, data_type = NA, notes = "Conflicting data types observed."))
+  return(list(data_type = data_type))
+}
+
+#' Validate with stated data_type in manifest
+#'
+#' @param csv_file Path to the manifest csv file.
+#' @param data_type Optional if present in manifest.
+#' @param dataset_id Optional dataset id.
+#' @param dataset_name Optional dataset name.
+manifest_validate_wrapper <- function(csv_file, data_type = NULL, dataset_id = NULL, dataset_name = NULL) {
+  if(is.null(data_type)) {
+    csv <- read.csv(csv_file)
+    data_type <- first(csv$Component)
+  }
+  results <- manifest_validate(data_type = data_type, file_name = csv_file)
+  results <- manifest_passed(results)
+  results$dataset_name <- dataset_name
+  results$dataset_id <- dataset_id
+  results$data_type <- data_type
+  results
 }
 
 
@@ -193,6 +211,7 @@ infer_data_type <- function(dataset_id) {
 #' @param asset_view A reference view, defaults to the main NF portal fileview.
 #' @param schema_url Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.
 #' @param cleanup Whether to automatically remove reconstituted manifests once done. Default `TRUE`.
+#' @param depth How much deeper to go when there appears to be no files in the immediate scope. Defaults to 1L.
 #' @returns List of structure `list(result = result, notes = notes)`,
 #' where `result` indicates passing or `NA` if no data or if couldn't be validated for other reasons.
 #' @export
@@ -200,61 +219,74 @@ meta_qc_dataset <- function(dataset_id,
                             data_type = NULL,
                             asset_view = "syn16787123",
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-                            cleanup = TRUE) {
+                            cleanup = TRUE,
+                            depth = 1L) {
 
   dataset_name <- .syn$get(dataset_id)$properties$name
+  files <- find_child_type(parent = dataset_id)
+  message(glue::glue("(found {length(files)} files for {dataset_name})"))
 
-  files <- reticulate::iterate(.syn$getChildren(dataset_id))
-  if(!length(files)) {
-    return(list(result = NA,
-                notes = "Empty dataset with no files",
-                dataset_name = dataset_name,
-                dataset_id = dataset_id,
-                data_type = data_type))
-  }
-
-  if(is.null(data_type)) {
-    data_type <- infer_data_type(dataset_id)$result
-    if(is.na(data_type)) {
-      return(list(result = FALSE,
-                  notes = "Metadata quality insufficient to even infer data type",
-                  dataset_name = dataset_name,
-                  dataset_id = dataset_id,
-                  data_type = data_type))
+  if (length(files)) {
+    tryCatch({
+      # Preferably check if there is a synapse_storage_csv since this will:
+      # 1) be faster than regenerating a manifest
+      # 2) better handle data files with additional nesting by batch or individual ids
+      stored_manifest <- first(grep("synapse_storage_manifest", names(files)))
+      if(length(stored_manifest)) {
+        message(glue::glue("Found synapse_storage_manifest for dataset named '{dataset_name}' ({dataset_id})!"))
+        manifest_id <- files[stored_manifest]
+        csv_file <- .syn$get(manifest_id)$path
+        results <- manifest_validate_wrapper(csv_file, dataset_id = dataset_id, dataset_name = dataset_name)
+        if(cleanup) {
+          file.remove(csv_file)
+          message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
+        }
+      } else { # Alternatively, reconstitute metadata manifest as excel
+        message(glue::glue("Regenerating manifest file for dataset named '{dataset_name}' ({dataset_id})..."))
+        partial_result <- infer_data_type(dataset_id)
+        if(is.na(partial_result$data_type)) return(partial_result) else data_type <- partial_result$data_type
+        xl_file <- manifest_generate(data_type, dataset_id, output_format = "excel")
+        csv_file <-  glue::glue("manifest_{dataset_id}.csv")
+        csv <- readxl::read_excel(xl_file, sheet = 1)
+        write.csv(csv, file = csv_file)
+        results <- manifest_validate_wrapper(csv_file, data_type = data_type, dataset_id = dataset_id, dataset_name = dataset_name)
+        if(cleanup) {
+          file.remove(xl_file, csv_file)
+          message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
+        }
+      }
+      return(results)
+    }, error = function(e) {
+      return(list(dataset_name = dataset_name, dataset_id = dataset_id, notes = e$message)) # API errors
+    })
+  } else if(depth) {
+    nested_datasets <- find_child_type(parent = dataset_id, child_type = list("folder"))
+    if(length(nested_datasets)) {
+      message(glue::glue("Trying instead: {glue::glue_collapse(names(nested_datasets), '; ')}"))
+      results <- lapply(nested_datasets, function(x) meta_qc_dataset(dataset_id = x, depth = depth - 1))
+      results <- rbindlist(results, fill = TRUE)
+      return(results)
+    } else {
+      return(
+        list(
+          result = NA,
+          notes = glue::glue("No data files found within {depth} level(s)"),
+          dataset_name = dataset_name,
+          dataset_id = dataset_id,
+          data_type = data_type))
     }
   }
-
-  # Reconstitute metadata manifest via excel as the best option for now
-  tryCatch({
-    message(glue::glue("Generating manifest files for dataset {dataset_id}..."))
-    xl_file <- manifest_generate(data_type, dataset_id, output_format = "excel")
-    csv_file <-  glue::glue("manifest_{dataset_id}.csv")
-    csv <- readxl::read_excel(xl_file, sheet = 1)
-    write.csv(csv, file = csv_file)
-    # Validate
-    results <- manifest_validate(data_type = data_type, file_name = csv_file)
-    if(cleanup) {
-      file.remove(xl_file, csv_file)
-      message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
-    }
-    results <- manifest_passed(results)
-  }, error = function(e) {
-    results <- list(result = NA, notes = e$message) # API errors
-  })
-
-  results$dataset_name <- dataset_name
-  results$data_type <- data_type
-  results$dataset_id <- dataset_id
-  results
 }
+
 
 
 #' QC metadata at the project level with pass/fail result
 #'
-#' An adequate wrapper to go through project datasets and do basic QC in one-stop-shop manner
-#' **for projects that have standard structure corresponding to what DCA expects**.
-#'
-#' For selective validation or other (e.g. milestone-based) structures, look at `meta_qc_dataset`.
+#' Wrapper to go through project datasets and do revalidation in one-stop-shop manner.
+#' This works best when datasets are directly under "Raw Data" (the standard and most-preferred organization)
+#' *or* at most one additional level of nesting. See https://help.nf.synapse.org/NFdocs/how-to-organize-data.
+#' For selective validation or more complicated structures,
+#' look at `meta_qc_dataset` to do manual or interactive dataset-by-dataset validation.
 #'
 #' @param project_id Synapse project id.
 #' @param result_file If not NULL, *also* write to output to `.csv` file.
@@ -264,15 +296,20 @@ meta_qc_dataset <- function(dataset_id,
 #' @export
 meta_qc_project <- function(project_id, result_file = NULL, ...) {
 
-  datasets <- list_project_datasets(project_id)
+  p <- .syn$get(project_id, downloadFile = FALSE)
+  if(p$properties$concreteType != "org.sagebionetworks.repo.model.Project") {
+    stop("This is not a project.")
+  }
+  datasets <- list_project_datasets(project_id, type = "folder")
   if(!length(datasets)) {
-    message("Problem with detecting datasets. Check project structure or drop down to manual dataset-by-dataset assessment.")
-    return(NA)
+    stop("Problem with automatically detecting datasets. ",
+            "Check project structure or drop down to `meta_qc_dataset` for dataset-by-dataset assessment.")
   }
 
   dataset_ids <- sapply(datasets, `[[`, "id")
   dataset_names <- sapply(datasets, `[[`, "name")
   message("Datasets found for QC:\n", glue::glue_collapse(dataset_names, sep = "\n"))
+
   results <- lapply(dataset_ids, meta_qc_dataset, ...)
   report <- rbindlist(results, fill = TRUE)
   if(!is.null(result_file)) write.csv(report, file = result_file, row.names = T)
@@ -368,7 +405,7 @@ precheck_manifest <- function(manifest_csv,
 
   # See https://github.com/Sage-Bionetworks/schematic/issues/476#issuecomment-848853193
   if("eTag" %in% attributes) {
-    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `eTag` is present and preferably be removed.")))
+    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `eTag` is present and should  preferably be removed.")))
   }
 
   #-- INFO only --#
@@ -379,5 +416,4 @@ precheck_manifest <- function(manifest_csv,
     message(crayon::blue(glue::glue("{emoji::emoji('information')} Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
                 Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.")))
   }
-
 }

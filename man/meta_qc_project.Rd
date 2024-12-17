@@ -18,9 +18,9 @@ A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pa
 otherwise \code{NA}.
 }
 \description{
-An adequate wrapper to go through project datasets and do basic QC in one-stop-shop manner
-\strong{for projects that have standard structure corresponding to what DCA expects}.
-}
-\details{
-For selective validation or other (e.g. milestone-based) structures, look at \code{meta_qc_dataset}.
+Wrapper to go through project datasets and do revalidation in one-stop-shop manner.
+This works best when datasets are directly under "Raw Data" (the standard and most-preferred organization)
+\emph{or} at most one additional level of nesting. See https://help.nf.synapse.org/NFdocs/how-to-organize-data.
+For selective validation or more complicated structures,
+look at \code{meta_qc_dataset} to do manual or interactive dataset-by-dataset validation.
 }
