@@ -28,10 +28,10 @@ annotation_rule <- function(outputFrom, which = c("format_as", "annotate_as", "t
     "featureCounts" = list(format_as = function(x) { "txt" }, annotate_as =  "annotate_quantified_expression", template = "bts:ProcessedExpressionTemplate"),
     "SAMtools" = list(format_as = function(x) { substring(x, nchar(x)-2, nchar(x)) }, annotate_as = "annotate_aligned_reads", template = "bts:ProcessedAlignedReadsTemplate"),
     "CNVkit" = list(format_as = function(x) { substring(x, nchar(x)-2, nchar(x)) }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
-    "DeepVariant" = list(format_as = function(x) { "vcf" }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
-    "Strelka2" = list(format_as = function(x) { "vcf" }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
-    "Mutect2" = list(format_as = function(x) { "vcf" }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
-    "FreeBayes" = list(format_as = function(x) { "vcf" }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"))
+    "DeepVariant" = list(format_as = function(x) { ifelse(grepl("tbi$", x), "tbi", "vcf") }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
+    "Strelka2" = list(format_as = function(x) { ifelse(grepl("tbi$", x), "tbi", "vcf") }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
+    "Mutect2" = list(format_as = function(x) { ifelse(grepl("tbi$", x), "tbi", "vcf") }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"),
+    "FreeBayes" = list(format_as = function(x) { ifelse(grepl("tbi$", x), "tbi", "vcf") }, annotate_as = "annotate_called_variants", template = "bts:ProcessedVariantCallsTemplate"))
 
   switch(
     which,
@@ -230,7 +230,7 @@ map_sample_output_sarek <- function(syn_out,
 
       index_fun <- function(x) {
         caller_index <- grep("cnvkit|deepvariant|strelka|mutect|freebayes", x, ignore.case = TRUE)[1]
-        if(!length(caller_index)) stop("Issue with figuring out sample output organization. Is there non-standard output?")
+        if(!length(caller_index)) stop("Issue with inferring sample output organization. Is this non-standard output?")
         file_index <- length(x)
         if((file_index - caller_index) == 1) {
           file_index - 2 # i.e. `VariantCalling/<SAMPLE>/<CALLER>`
@@ -243,7 +243,10 @@ map_sample_output_sarek <- function(syn_out,
       # For nf-sarek tumor somatic variant calling, sample references tumor vs normal from same indiv
       # The sample assigned to the processed data is the tumor sample
       result[, sample := path_extract(path, index_fun = index_fun)]
-      if(grepl("_vs_", first(result$output_name))) result[, sample := gsub("_vs.*", "", sample)]
+      if(.output %in% c("Strelka2", "FreeBayes", "Mutect2") && any(grepl("_vs_", result$sample))) {
+        message("  - Somatic data present.")
+        result[, sample := gsub("_vs.*", "", sample)]
+      }
 
       results[[.output]] <- result
       setattr(results[[.output]], "outputFrom", .output)
@@ -450,6 +453,8 @@ annotate_called_variants <- function(metadata,
         "AnnotatedSomaticVariants"
       } else if(!grepl("_vs_", name) && format == "maf") {
         "AnnotatedGermlineVariants"
+      } else if(format == "tbi") {
+        "dataIndex"
       } else if(format %in% c("cns", "cnn", "cnr", "bed", "pdf", "png")) {
         "CopyNumberVariants"
       } else {
