@@ -61,7 +61,8 @@ A dataset in this context is a folder, usually tagged with <code>contentType</co
 <span>  asset_view <span class="op">=</span> <span class="st">"syn16787123"</span>,</span>
 <span>  schema_url <span class="op">=</span></span>
 <span>    <span class="st">"https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"</span>,</span>
-<span>  cleanup <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  cleanup <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  depth <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -87,6 +88,10 @@ A dataset in this context is a folder, usually tagged with <code>contentType</co
 
 <dt id="arg-cleanup">cleanup<a class="anchor" aria-label="anchor" href="#arg-cleanup"></a></dt>
 <dd><p>Whether to automatically remove reconstituted manifests once done. Default <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-depth">depth<a class="anchor" aria-label="anchor" href="#arg-depth"></a></dt>
+<dd><p>How much deeper to go when there appears to be no files in the immediate scope. Defaults to 1L.</p></dd>
 
 </dl></div>
     <div class="section level2">
