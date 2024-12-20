@@ -71,6 +71,7 @@
 <url><loc>/reference/dot-add_publication_from_pubmed.html</loc></url>
 <url><loc>/reference/dot-check_login.html</loc></url>
 <url><loc>/reference/dot-delim_string_to_vector.html</loc></url>
+<url><loc>/reference/dot-dict_to_list.html</loc></url>
 <url><loc>/reference/dot-modify_annotation.html</loc></url>
 <url><loc>/reference/dot-replace_string_column_with_stringlist_column.html</loc></url>
 <url><loc>/reference/dot-store_rows.html</loc></url>
@@ -78,6 +79,7 @@
 <url><loc>/reference/dot-update_view_data.html</loc></url>
 <url><loc>/reference/dsp_dataset_mapping.html</loc></url>
 <url><loc>/reference/dt_read.html</loc></url>
+<url><loc>/reference/extract_syn_id_from_ss.html</loc></url>
 <url><loc>/reference/find_child.html</loc></url>
 <url><loc>/reference/find_child_type.html</loc></url>
 <url><loc>/reference/find_data_root.html</loc></url>

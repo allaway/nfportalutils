@@ -49,7 +49,13 @@ If same annotation keys already exist on target entities, the copy will replace 
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">copy_annotations</span><span class="op">(</span><span class="va">entity_from</span>, <span class="va">entity_to</span>, select <span class="op">=</span> <span class="cn">NULL</span>, update <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">copy_annotations</span><span class="op">(</span></span>
+<span>  <span class="va">entity_from</span>,</span>
+<span>  <span class="va">entity_to</span>,</span>
+<span>  select <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  update <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  as_list <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -71,6 +77,11 @@ If not specified, will copy over everything, which may not be desirable.</p></dd
 
 <dt id="arg-update">update<a class="anchor" aria-label="anchor" href="#arg-update"></a></dt>
 <dd><p>Whether to immediately update or return annotation objects only.</p></dd>
+
+
+<dt id="arg-as-list">as_list<a class="anchor" aria-label="anchor" href="#arg-as-list"></a></dt>
+<dd><p>Only used when <code>update=FALSE</code>; for backwards-compatibility or when
+downstream usage of <code>copy_annotations</code> expects an R list, return as an R list.</p></dd>
 
 </dl></div>
 
