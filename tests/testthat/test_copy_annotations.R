@@ -1,4 +1,5 @@
-test_that("Copy annotations works", {
+test_that("Copy annotations works to apply an immediate copy of annotations from one entity to another (update=TRUE)
+          as well as when simply getting a copy of the annotations present as a default R list to work with (update=FALSE)", {
   skip_if_no_synapseclient()
   skip_if_no_login()
 
@@ -18,11 +19,23 @@ test_that("Copy annotations works", {
                                    parent = PARENT_TEST_PROJECT)
   entity_c <- .syn$store(entity_c)
 
-  # when copying all annotations from A->B (default)
+  # when getting a copy of all annotations from A->B (default)
+  copy_of_a_b <- copy_annotations(entity_from = entity_a$properties$id,
+                                  entity_to = entity_b$properties$id,
+                                  select = NULL,
+                                  update = FALSE)
+
+  # when immediately copying all annotations from A->B (default)
   copy_annotations(entity_from = entity_a$properties$id,
                    entity_to = entity_b$properties$id,
                    select = NULL,
                    update = TRUE)
+
+  # when getting a copy of selective annotations from A->C
+  copy_of_a_c <- copy_annotations(entity_from = entity_a$properties$id,
+                                  entity_to = entity_c$properties$id,
+                                  select = c("favorites", "key_not_on_a"),
+                                  update = FALSE)
 
   # when copying selective annotations from A->C
   copy_annotations(entity_from = entity_a$properties$id,
@@ -35,6 +48,8 @@ test_that("Copy annotations works", {
   .syn$delete(entity_a)
   .syn$delete(entity_b)
   .syn$delete(entity_c)
+  testthat::expect_equal(copy_of_a_b, list(after_a = TRUE, favorites = c("raindrops", "whiskers"), foo = "bar"))
+  testthat::expect_equal(copy_of_a_c, list(favorites = c("raindrops", "whiskers")))
   testthat::expect_equal(result_b$foo, "bar")
   testthat::expect_equal(result_b$favorites, c("raindrops", "whiskers"))
   testthat::expect_equal(result_b$after_a, TRUE)
@@ -43,5 +58,4 @@ test_that("Copy annotations works", {
   testthat::expect_error(result_c$key_not_on_a)
 
 })
-
 

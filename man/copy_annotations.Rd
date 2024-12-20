@@ -4,7 +4,13 @@
 \alias{copy_annotations}
 \title{Copy annotations}
 \usage{
-copy_annotations(entity_from, entity_to, select = NULL, update = FALSE)
+copy_annotations(
+  entity_from,
+  entity_to,
+  select = NULL,
+  update = FALSE,
+  as_list = TRUE
+)
 }
 \arguments{
 \item{entity_from}{Syn id from which to copy.}
@@ -15,6 +21,9 @@ copy_annotations(entity_from, entity_to, select = NULL, update = FALSE)
 If not specified, will copy over everything, which may not be desirable.}
 
 \item{update}{Whether to immediately update or return annotation objects only.}
+
+\item{as_list}{Only used when \code{update=FALSE}; for backwards-compatibility or when
+downstream usage of \code{copy_annotations} expects an R list, return as an R list.}
 }
 \description{
 Copy annotations (all or selectively) from a source entity to one or more target entities.
