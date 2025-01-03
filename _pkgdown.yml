@@ -147,6 +147,7 @@ reference:
   - table_query
   - as_table_schema
   - make_folder
+  - bind_schema
   - add_to_scope
   - new_view
   - list_project_datasets

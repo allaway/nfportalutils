@@ -96,13 +96,7 @@ new_project <- function(name,
 
   # Bind JSON schema so children folders have NF's dataset schemas, see
   # https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/org.synapse.nf-superdataset
-  # and https://help.synapse.org/docs/JSON-Schemas.3107291536.html
-  bind_schema_request <- jsonlite::toJSON(list(entityId = data_folder_id,
-                                               `schema$id` = "org.synapse.nf-superdataset",
-                                               enableDerivedAnnotations = TRUE),
-                                          auto_unbox = TRUE)
-  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{data_folder_id}/schema/binding")
-  try(.syn$restPUT(binding_uri, bind_schema_request))
+  bind_schema(id = data_folder_id, schema_id = "org.synapse.nf-superdataset", derived_annotations = TRUE)
 
   # Create data-specific folders in "Raw Data"
   if(length(datasets)) {
@@ -111,8 +105,14 @@ new_project <- function(name,
 
   # Create homes for non-data resources alongside "Raw Data"
   if(length(other_resources)) {
-    make_folder(parent = project, folders = other_resources)
+    other_resource_folders <- make_folder(parent = project, folders = other_resources)
+    if ("Protocols" %in% names(other_resource_folders)) {
+      bind_schema(id = other_resource_folders$Protocols$properties$id, schema_id = "org.synapse.nf-protocol", derived_annotations = FALSE)
+    }
   }
+
+  # Aside from dataset schema, currently only have protocols schema
+
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
   fv <- add_default_fileview(project)
@@ -156,29 +156,31 @@ add_default_fileview <- function(project) {
   view <- synapseclient$EntityViewSchema(
     name = "Project Files and Metadata",
     columns=list(
+      synapseclient$Column(name="contentType", columnType="STRING", maximumSize="20"),
       synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
-      synapseclient$Column(name="assay", columnType="STRING", maximumSize="57"),
+      synapseclient$Column(name="assay", columnType="STRING", maximumSize="100"),
       synapseclient$Column(name="dataType", columnType="STRING", maximumSize="30"),
       synapseclient$Column(name="dataSubtype", columnType="STRING", maximumSize="13"),
       synapseclient$Column(name="fileFormat", columnType="STRING", maximumSize="13"),
       synapseclient$Column(name="diagnosis", columnType="STRING", maximumSize="39"),
       synapseclient$Column(name="tumorType", columnType="STRING", maximumSize="90"),
-      synapseclient$Column(name="individualID", columnType="STRING", maximumSize="213"),
-      synapseclient$Column(name="specimenID", columnType="STRING", maximumSize="300"),
+      synapseclient$Column(name="individualID", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
+      synapseclient$Column(name="specimenID", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
       synapseclient$Column(name="nf1Genotype", columnType="STRING", maximumSize="8"),
-      synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="7"),
+      synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="20"),
       synapseclient$Column(name="species", columnType="STRING", maximumSize="100"),
-      synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="42"),
-      synapseclient$Column(name="cellType", columnType="STRING", maximumSize="300"),
-      synapseclient$Column(name="sex", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="100"),
+      synapseclient$Column(name="cellType", columnType="STRING_LIST", maximumSize="50", maximumListLength = "50"),
+      synapseclient$Column(name="sex", columnType="STRING", maximumSize="30"),
       synapseclient$Column(name="age", columnType="STRING", maximumSize="50"),
-      synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="58"),
+      synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="100"),
       synapseclient$Column(name="progressReportNumber", columnType="INTEGER")
     ),
     parent = project,
     scopes = project,
-    includeEntityTypes = list(synapseclient$EntityViewType$FILE),
-    add_default_columns = TRUE)
+    includeEntityTypes = list(synapseclient$EntityViewType$FILE, synapseclient$EntityViewType$FOLDER),
+    add_default_columns = TRUE,
+    addAnnotationColumns = FALSE)
   view <- .syn$store(view)
   invisible(view)
 }
@@ -296,3 +298,21 @@ is_valid_team <- function(id) {
   if(length(status)) return(TRUE) else return(FALSE)
 }
 
+#' Wrapper for JSON schema binding
+#'
+#' See https://help.synapse.org/docs/JSON-Schemas.3107291536.html
+#'
+#' @param id Id of entity to which schema will be bound
+#' @param schema_id Schema id as registered on Synapse.
+#' @param derived_annotations Whether to enabled derived annotations.
+#' Default `FALSE` as this is the API default.
+#' @export
+bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
+
+  bind_schema_request <- jsonlite::toJSON(list(entityId = id,
+                                               `schema$id` = schema_id,
+                                               enableDerivedAnnotations = derived_annotations),
+                                          auto_unbox = TRUE)
+  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/binding")
+  try(.syn$restPUT(binding_uri, bind_schema_request))
+}
